@@ -1,0 +1,53 @@
+object frmMain: TfrmMain
+  Left = 350
+  Height = 565
+  Top = 250
+  Width = 1072
+  Caption = 'frmMain'
+  ClientHeight = 565
+  ClientWidth = 1072
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  object sbBottom: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 542
+    Width = 1072
+    Panels = <>
+  end
+  object tlbTopBar: TToolBar
+    Left = 0
+    Height = 26
+    Top = 0
+    Width = 1072
+    TabOrder = 1
+  end
+  object imgView: TImage
+    Left = 152
+    Height = 516
+    Top = 26
+    Width = 920
+    Align = alClient
+    Proportional = True
+    Stretch = True
+  end
+  object lvThumbnail: TDrawGrid
+    Left = 0
+    Height = 516
+    Top = 26
+    Width = 152
+    Align = alLeft
+    ColCount = 1
+    DefaultColWidth = 128
+    DefaultRowHeight = 128
+    ExtendedSelect = False
+    FixedCols = 0
+    FixedRows = 0
+    Options = [goRowSelect, goSmoothScroll, goRowHighlight]
+    RowCount = 1
+    ScrollBars = ssAutoVertical
+    TabOrder = 2
+    OnDrawCell = lvThumbnailDrawCell
+    OnSelectCell = lvThumbnailSelectCell
+  end
+end
