@@ -25,14 +25,9 @@ unit Thumbnails;
 interface
 
 uses
-  Classes, SysUtils, Graphics, types, fgl, FilesSupport;
+  Classes, SysUtils, Graphics, types, fgl, FilesSupport, Magick_LCL;
 
 type
-  { TBlobStream - helper class to handle arbitrary memory region as a stream }
-  TBlobStream = class(TCustomMemoryStream)
-  public
-    constructor Create(Ptr: Pointer; ASize: PtrInt);
-  end;
 
   { TThumbnail - this class contains a thumbnail and infos about an image}
 
@@ -44,7 +39,7 @@ type
     function GetSize: TSize;
 
   public
-    property Image: TBitmap read Fimage;
+    property Image: TBItmap read Fimage;
     property Size: TSize read GetSize;
     Property Info: TFileInfo read fInfo;
     property FullName: TFileName read FFullName;
@@ -64,7 +59,8 @@ type
     Property MaskList:TSTringList read FMaskList;
     property MaxSize: TSize read FMaxSize write SetMaxSize;
     function LoadPath(Path: TFileName): integer;
-    function GetPreviewScaleSize(aWidth, aHeight: Integer): TSize;
+    function GetPreviewScaleSize(aWidth, aHeight: Integer): TSize; overload;
+    function GetPreviewScaleSize(aWidth, aHeight: Integer; Constraint: TSize): TSize; overload;
     Constructor Create;
     destructor Destroy; override;
   end;
@@ -73,14 +69,6 @@ type
 implementation
 uses
   MagickWand, ImageMagick;
-
-
-{ TBlobStream }
-constructor TBlobStream.Create(Ptr: Pointer; ASize: PtrInt);
-begin
-  inherited Create;
-  SetPointer(Ptr, ASize);
-end;
 
 function TThumbnail.GetSize: TSize;
 begin
@@ -110,19 +98,25 @@ end;
 { TThumbnailManager }
 function TThumbnailManager.GetPreviewScaleSize(aWidth, aHeight: Integer): TSize;
 begin
+  Result := GetPreviewScaleSize(aWidth, aHeight, FMaxSize);
+end;
+
+function TThumbnailManager.GetPreviewScaleSize(aWidth, aHeight: Integer;
+  Constraint: TSize): TSize;
+begin
   if aWidth > aHeight then
     begin
-      Result.cx:= FMaxSize.cx;
+      Result.cx:= Constraint.cx;
       Result.cy:= Result.cx * aHeight div aWidth;
-      if Result.cy > FMaxSize.cy then
+      if Result.cy > Constraint.cy then
       begin
-        Result.cy:= FMaxSize.cy;
+        Result.cy:= Constraint.cy;
         Result.cx:= Result.cy * aWidth div aHeight;
       end;
     end
   else
     begin
-      Result.cy:= FMaxSize.cy;
+      Result.cy:= Constraint.cy;
       Result.cx:= Result.cy * aWidth div aHeight;
     end;
 end;
@@ -239,7 +233,7 @@ begin
     '*.sgi',
     '*.srf',
     '*.sun',
-    '*.svg',
+   // '*.svg',
     '*.svgz',
     '*.tif',
     '*.tiff',
@@ -313,24 +307,15 @@ begin
           Size:=GetPreviewScaleSize(W, H);
           MagickResizeImage(wand, Size.cx, Size.cy, LanczosFilter, 1.0);
         end;
-      MagickSetImageFormat(wand,'BMP');
-      Memory:= MagickGetImageBlob(Wand, @MemorySize);
-      if Assigned(Memory) then
-        try
-          BlobStream:= TBlobStream.Create(Memory, MemorySize);
-          Item:= TThumbnail.Create(BlobStream);
-          Item.fInfo := TFileInfoObject(intList.Objects[i]).info;
-          Item.FFullName:=intList[i];
-          BlobStream.Free;
-        finally
-          MagickRelinquishMemory(Memory);
-        end;
-
+      Item:= TThumbnail.Create();
+      LoadMagickBitmapWand4(wand, Item.FImage);
+      Item.fInfo := TFileInfoObject(intList.Objects[i]).info;
+      Item.FFullName:=intList[i];
       Add(Item);
     end;
 
   wand := DestroyMagickWand(wand);
-
+  Result := intList.Count;
   intList.Free;
 
 end;

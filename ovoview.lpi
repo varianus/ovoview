@@ -23,14 +23,16 @@
     </PublishOptions>
     <RunParams>
       <FormatVersion Value="2"/>
-      <Modes Count="0"/>
+      <Modes Count="1">
+        <Mode0 Name="default"/>
+      </Modes>
     </RunParams>
     <RequiredPackages Count="1">
       <Item1>
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="4">
+    <Units Count="5">
       <Unit0>
         <Filename Value="ovoview.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -53,13 +55,18 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="Thumbnails"/>
       </Unit3>
+      <Unit4>
+        <Filename Value="magick_lcl.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Magick_LCL"/>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="bin/ovoview"/>
+      <Filename Value="bin\ovoview"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

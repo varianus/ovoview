@@ -25,20 +25,32 @@ unit uMain;
 interface
 
 uses
-  Classes, SysUtils, types, Forms, Controls, Graphics, Dialogs, ComCtrls, ExtCtrls,
-  FilesSupport, Thumbnails, MagickWand, ImageMagick, StdCtrls, Grids;
+  Classes, SysUtils, types, Forms, Controls, Graphics, Dialogs, ComCtrls,
+  ExtCtrls, FilesSupport, Thumbnails, Magick_LCL, MagickWand, ImageMagick,
+  StdCtrls, Grids, ActnList, DBActns;
 
 type
 
   { TfrmMain }
 
   TfrmMain = class(TForm)
+    actSlideShow: TAction;
+    actNext: TAction;
+    actPrev: TAction;
+    ActionList: TActionList;
+    ImageList1: TImageList;
     lvThumbnail: TDrawGrid;
     imgView: TImage;
     sbBottom: TStatusBar;
     tlbTopBar: TToolBar;
+    septb: TToolButton;
+    ToolButton2: TToolButton;
+    ToolButton4: TToolButton;
+    procedure actNextExecute(Sender: TObject);
+    procedure actPrevExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormResize(Sender: TObject);
     procedure lvThumbnailDrawCell(Sender: TObject; aCol, aRow: Integer;
       aRect: TRect; aState: TGridDrawState);
     procedure lvThumbnailSelectCell(Sender: TObject; aCol, aRow: Integer;
@@ -60,6 +72,7 @@ implementation
 
 { TfrmMain }
 
+
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   ImageMagick.Initialize();
@@ -74,11 +87,34 @@ begin
     end;
 end;
 
+procedure TfrmMain.actNextExecute(Sender: TObject);
+begin
+  if lvThumbnail.Row = lvThumbnail.RowCount - 1 then
+    lvThumbnail.row := 0
+  else
+    lvThumbnail.Row:= lvThumbnail.Row + 1;
+end;
+
+procedure TfrmMain.actPrevExecute(Sender: TObject);
+begin
+  if lvThumbnail.Row = 0 then
+    lvThumbnail.row := lvThumbnail.RowCount - 1
+  else
+    lvThumbnail.Row:= lvThumbnail.Row - 1;
+end;
+
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
   MaskList.Free;
   Manager.Free;
   ImageMagick.Finalize();
+end;
+
+procedure TfrmMain.FormResize(Sender: TObject);
+begin
+ //
+ septb.Width:= (tlbTopBar.Width - (36*2)) div 2;
+
 end;
 
 procedure TfrmMain.lvThumbnailDrawCell(Sender: TObject; aCol, aRow: Integer;
@@ -93,24 +129,28 @@ procedure TfrmMain.lvThumbnailSelectCell(Sender: TObject; aCol, aRow: Integer;
 var
   wand: PMagickWand;
   status: MagickBooleanType;
-  BlobStream: TBlobStream;
-  Memory:pointer;
-  MemorySize: integer;
+  bm:TBitmap;
+  H,W: integer;
+  NewSize, _Constraints: TSize;
 begin
   wand := NewMagickWand();
   try
     status := MagickReadImage(wand, PChar(Manager[aRow].FullName));
-    MagickSetImageFormat(wand,'BMP');
-    Memory:= MagickGetImageBlob(Wand, @MemorySize);
-    if Assigned(Memory) then
-      try
-        BlobStream:= TBlobStream.Create(Memory, MemorySize);
-        imgView.Picture.LoadFromStream(BlobStream);
-        sbBottom.SimpleText:= Manager[aRow].FullName;
-        BlobStream.Free;
-      finally
-        MagickRelinquishMemory(Memory);
-      end;
+    H := MagickGetImageHeight(wand);
+    W := MagickGetImageWidth(wand);
+    if (H > imgView.Height) or (W > imgView.Width) then
+      begin
+        _Constraints:= TSize.Create(imgView.Width,imgView.Height);
+        NewSize:=Manager.GetPreviewScaleSize(W, H, _Constraints);
+        MagickResizeImage(wand, NewSize.cx, NewSize.cy, LanczosFilter, 1.0);
+      end
+    else
+      NewSize:= TSize.Create(W, H);
+    bm:= TBitmap.Create;
+    LoadMagickBitmapWand4(Wand, bm);
+    imgView.picture.Assign(bm);
+    bm.free;
+    sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Manager[aRow].FullName), W, H, (Newsize.cx / W) * 100]);
 
   finally
     wand := DestroyMagickWand(wand);
@@ -128,7 +168,7 @@ begin
 
   for I := 0 to Manager.Count -1 do
     lvThumbnail.RowHeights[i]:= Manager[I].Size.cy + 6;
-
+  result := Manager.Count;
 end;
 
 end.
