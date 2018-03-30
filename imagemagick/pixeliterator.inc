@@ -15,7 +15,7 @@
 
   Pixel Iterator Methods.
 }
-
+{$IFDEF INTERFACE}
 type
   PixelIterator = record
     id: culong;
@@ -68,3 +68,26 @@ type
     PixelResetIterator:TPixelResetIterator=nil;
     PixelSetFirstIteratorRow:TPixelSetFirstIteratorRow=nil;
     PixelSetLastIteratorRow:TPixelSetLastIteratorRow=nil;
+
+{$ENDIF INTERFACE}
+
+{$IFDEF IMPLEMENTATION}
+  Pointer(PixelGetIteratorException):=GetProcAddress(LibWand, 'PixelGetIteratorException');
+  Pointer(IsPixelIterator):=GetProcAddress(LibWand, 'IsPixelIterator');
+  Pointer(PixelClearIteratorException):=GetProcAddress(LibWand, 'PixelClearIteratorException');
+  Pointer(PixelSetIteratorRow):=GetProcAddress(LibWand, 'PixelSetIteratorRow');
+  Pointer(PixelSyncIterator):=GetProcAddress(LibWand, 'PixelSyncIterator');
+
+  Pointer(DestroyPixelIterator):=GetProcAddress(LibWand, 'DestroyPixelIterator');
+  Pointer(NewPixelIterator):=GetProcAddress(LibWand, 'NewPixelIterator');
+  Pointer(NewPixelRegionIterator):=GetProcAddress(LibWand, 'NewPixelRegionIterator');
+
+  Pointer(PixelGetNextIteratorRow):=GetProcAddress(LibWand, 'PixelGetNextIteratorRow');
+  Pointer(PixelGetPreviousIteratorRow):=GetProcAddress(LibWand, 'PixelGetPreviousIteratorRow');
+
+  Pointer(ClearPixelIterator):=GetProcAddress(LibWand, 'ClearPixelIterator');
+  Pointer(PixelResetIterator):=GetProcAddress(LibWand, 'PixelResetIterator');
+  Pointer(PixelSetFirstIteratorRow):=GetProcAddress(LibWand, 'PixelSetFirstIteratorRow');
+  Pointer(PixelSetLastIteratorRow):=GetProcAddress(LibWand, 'PixelSetLastIteratorRow');
+
+{$ENDIF IMPLEMENTATION}

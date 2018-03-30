@@ -53,10 +53,13 @@ type
   end;
   PMagickWand = ^TMagickWand;
 
+  {$DEFINE INTERFACE}
   {$include PixelWand.inc}      // <- has externals
   {$include DrawingWand.inc}    // <- has externals
-  {$include MagickAttribute.inc} // <- has externals
-  {$include PixelIterator.inc}  // <- has externals
+  {.$include MagickAttribute.inc} // <- has externals
+  {.$include PixelIterator.inc}  // <- has externals
+  {$include MagickProperty.inc}
+  {$UNDEF INTERFACE}
 Type
   TMagickGetImageChannelStatistics=function (wand: PMagickWand): PChannelStatistics; cdecl;
   TMagickGetImageAttribute=function (wand: PMagickWand): PChar; cdecl;
@@ -757,245 +760,14 @@ begin
   Pointer(MagickGetImageWidth):=GetProcAddress(LibWand, 'MagickGetImageWidth');
   Pointer(MagickGetNumberImages):=GetProcAddress(LibWand, 'MagickGetNumberImages');
 
+  {$DEFINE IMPLEMENTATION}
+  {.$include PixelWand.inc}
+  {.$include DrawingWand.inc}
+  {.$include MagickAttribute.inc}
+  {.$include PixelIterator.inc}
+  {$include MagickProperty.inc}
 
-  // PixelWand.inc
-
-  Pointer(PixelGetColorAsString):=GetProcAddress(LibWand, 'PixelGetColorAsString');
-  Pointer(PixelGetException):=GetProcAddress(LibWand, 'PixelGetException');
-  Pointer(PixelGetAlpha):=GetProcAddress(LibWand, 'PixelGetAlpha');
-  Pointer(PixelGetBlack):=GetProcAddress(LibWand, 'PixelGetBlack');
-  Pointer(PixelGetBlue):=GetProcAddress(LibWand, 'PixelGetBlue');
-  Pointer(PixelGetCyan):=GetProcAddress(LibWand, 'PixelGetCyan');
-  Pointer(PixelGetMagenta):=GetProcAddress(LibWand, 'PixelGetMagenta');
-  Pointer(PixelGetOpacity):=GetProcAddress(LibWand, 'PixelGetOpacity');
-  Pointer(PixelGetRed):=GetProcAddress(LibWand, 'PixelGetRed');
-  Pointer(PixelGetYellow):=GetProcAddress(LibWand, 'PixelGetYellow');
-  Pointer(PixelGetIndex):=GetProcAddress(LibWand, 'PixelGetIndex');
-
-  Pointer(IsPixelWand):=GetProcAddress(LibWand, 'IsPixelWand');
-  Pointer(IsPixelWandSimilar):=GetProcAddress(LibWand, 'IsPixelWandSimilar');
-  Pointer(PixelClearException):=GetProcAddress(LibWand, 'PixelClearException');
-  Pointer(PixelSetColor):=GetProcAddress(LibWand, 'PixelSetColor');
-
-  Pointer(DestroyPixelWand):=GetProcAddress(LibWand, 'DestroyPixelWand');
-  Pointer(DestroyPixelWands):=GetProcAddress(LibWand, 'DestroyPixelWands');
-  Pointer(NewPixelWand):=GetProcAddress(LibWand, 'NewPixelWand');
-  Pointer(NewPixelWands):=GetProcAddress(LibWand, 'NewPixelWands');
-
-  Pointer(PixelGetAlphaQuantum):=GetProcAddress(LibWand, 'PixelGetAlphaQuantum');
-  Pointer(PixelGetBlackQuantum):=GetProcAddress(LibWand, 'PixelGetBlackQuantum');
-  Pointer(PixelGetBlueQuantum):=GetProcAddress(LibWand, 'PixelGetBlueQuantum');
-  Pointer(PixelGetCyanQuantum):=GetProcAddress(LibWand, 'PixelGetCyanQuantum');
-  Pointer(PixelGetGreenQuantum):=GetProcAddress(LibWand, 'PixelGetGreenQuantum');
-  Pointer(PixelGetMagentaQuantum):=GetProcAddress(LibWand, 'PixelGetMagentaQuantum');
-  Pointer(PixelGetOpacityQuantum):=GetProcAddress(LibWand, 'PixelGetOpacityQuantum');
-  Pointer(PixelGetRedQuantum):=GetProcAddress(LibWand, 'PixelGetRedQuantum');
-  Pointer(PixelGetYellowQuantum):=GetProcAddress(LibWand, 'PixelGetYellowQuantum');
-
-  Pointer(PixelGetColorCount):=GetProcAddress(LibWand, 'PixelGetColorCount');
-
-  Pointer(ClearPixelWand):=GetProcAddress(LibWand, 'ClearPixelWand');
-  Pointer(PixelGetQuantumColor):=GetProcAddress(LibWand, 'PixelGetQuantumColor');
-  Pointer(PixelSetAlpha):=GetProcAddress(LibWand, 'PixelSetAlpha');
-  Pointer(PixelSetAlphaQuantum):=GetProcAddress(LibWand, 'PixelSetAlphaQuantum');
-  Pointer(PixelSetBlack):=GetProcAddress(LibWand, 'PixelSetBlack');
-  Pointer(PixelSetBlackQuantum):=GetProcAddress(LibWand, 'PixelSetBlackQuantum');
-  Pointer(PixelSetBlue):=GetProcAddress(LibWand, 'PixelSetBlue');
-  Pointer(PixelSetBlueQuantum):=GetProcAddress(LibWand, 'PixelSetBlueQuantum');
-  Pointer(PixelSetColorCount):=GetProcAddress(LibWand, 'PixelSetColorCount');
-
-  Pointer(PixelSetCyan):=GetProcAddress(LibWand, 'PixelSetCyan');
-  Pointer(PixelSetCyanQuantum):=GetProcAddress(LibWand, 'PixelSetCyanQuantum');
-  Pointer(PixelSetGreen):=GetProcAddress(LibWand, 'PixelSetGreen');
-  Pointer(PixelSetGreenQuantum):=GetProcAddress(LibWand, 'PixelSetGreenQuantum');
-
-  Pointer(PixelSetIndex):=GetProcAddress(LibWand, 'PixelSetIndex');
-  Pointer(PixelSetMagenta):=GetProcAddress(LibWand, 'PixelSetMagenta');
-  Pointer(PixelSetMagentaQuantum):=GetProcAddress(LibWand, 'PixelSetMagentaQuantum');
-  Pointer(PixelSetMagickColor):=GetProcAddress(LibWand, 'PixelSetMagickColor');
-  Pointer(PixelSetOpacity):=GetProcAddress(LibWand, 'PixelSetOpacity');
-  Pointer(PixelSetOpacityQuantum):=GetProcAddress(LibWand, 'PixelSetOpacityQuantum');
-
-  Pointer(PixelSetRed):=GetProcAddress(LibWand, 'PixelSetRed');
-  Pointer(PixelSetRedQuantum):=GetProcAddress(LibWand, 'PixelSetRedQuantum');
-  Pointer(PixelSetYellow):=GetProcAddress(LibWand, 'PixelSetYellow');
-  Pointer(PixelSetYellowQuantum):=GetProcAddress(LibWand, 'PixelSetYellowQuantum');
-  Pointer(PixelGetMagickColor):=GetProcAddress(LibWand, 'PixelGetMagickColor');
-
-  // DrawingWand.inc
-
-  Pointer(DrawGetTextAlignment):=GetProcAddress(LibWand, 'DrawGetTextAlignment');
-
-  Pointer(DrawGetClipPath):=GetProcAddress(LibWand, 'DrawGetClipPath');
-  Pointer(DrawGetException):=GetProcAddress(LibWand, 'DrawGetException');
-  Pointer(DrawGetFont):=GetProcAddress(LibWand, 'DrawGetFont');
-  Pointer(DrawGetFontFamily):=GetProcAddress(LibWand, 'DrawGetFontFamily');
-  Pointer(DrawGetTextEncoding):=GetProcAddress(LibWand, 'DrawGetTextEncoding');
-  Pointer(DrawGetVectorGraphics):=GetProcAddress(LibWand, 'DrawGetVectorGraphics');
-
-  Pointer(DrawGetClipUnits):=GetProcAddress(LibWand, 'DrawGetClipUnits');
-
-  Pointer(DrawGetTextDecoration):=GetProcAddress(LibWand, 'DrawGetTextDecoration');
-
-  Pointer(DrawGetFillAlpha):=GetProcAddress(LibWand, 'DrawGetFillAlpha');
-  Pointer(DrawGetFontSize):=GetProcAddress(LibWand, 'DrawGetFontSize');
-  Pointer(DrawGetStrokeDashArray):=GetProcAddress(LibWand, 'DrawGetStrokeDashArray');
-  Pointer(DrawGetStrokeDashOffset):=GetProcAddress(LibWand, 'DrawGetStrokeDashOffset');
-  Pointer(DrawGetStrokeAlpha):=GetProcAddress(LibWand, 'DrawGetStrokeAlpha');
-  Pointer(DrawGetStrokeWidth):=GetProcAddress(LibWand, 'DrawGetStrokeWidth');
-
-  Pointer(PeekDrawingWand):=GetProcAddress(LibWand, 'PeekDrawingWand');
-
-  Pointer(CloneDrawingWand):=GetProcAddress(LibWand, 'CloneDrawingWand');
-  Pointer(DestroyDrawingWand):=GetProcAddress(LibWand, 'DestroyDrawingWand');
-
-  Pointer(NewDrawingWand):=GetProcAddress(LibWand, 'NewDrawingWand');
-
-  Pointer(DrawGetClipRule):=GetProcAddress(LibWand, 'DrawGetClipRule');
-  Pointer(DrawGetFillRule):=GetProcAddress(LibWand, 'DrawGetFillRule');
-
-  Pointer(DrawGetGravity):=GetProcAddress(LibWand, 'DrawGetGravity');
-
-  Pointer(DrawGetStrokeLineCap):=GetProcAddress(LibWand, 'DrawGetStrokeLineCap');
-
-  Pointer(DrawGetStrokeLineJoin):=GetProcAddress(LibWand, 'DrawGetStrokeLineJoin');
-
-  Pointer(DrawClearException):=GetProcAddress(LibWand, 'DrawClearException');
-  Pointer(DrawComposite):=GetProcAddress(LibWand, 'DrawComposite');
-  Pointer(DrawGetStrokeAntialias):=GetProcAddress(LibWand, 'DrawGetStrokeAntialias');
-  Pointer(DrawGetTextAntialias):=GetProcAddress(LibWand, 'DrawGetTextAntialias');
-  Pointer(DrawPopPattern):=GetProcAddress(LibWand, 'DrawPopPattern');
-  Pointer(DrawPushPattern):=GetProcAddress(LibWand, 'DrawPushPattern');
-  Pointer(DrawRender):=GetProcAddress(LibWand, 'DrawRender');
-  Pointer(DrawSetClipPath):=GetProcAddress(LibWand, 'DrawSetClipPath');
-  Pointer(DrawSetFillPatternURL):=GetProcAddress(LibWand, 'DrawSetFillPatternURL');
-  Pointer(DrawSetFont):=GetProcAddress(LibWand, 'DrawSetFont');
-  Pointer(DrawSetFontFamily):=GetProcAddress(LibWand, 'DrawSetFontFamily');
-  Pointer(DrawSetStrokeDashArray):=GetProcAddress(LibWand, 'DrawSetStrokeDashArray');
-  Pointer(DrawSetStrokePatternURL):=GetProcAddress(LibWand, 'DrawSetStrokePatternURL');
-  Pointer(DrawSetVectorGraphics):=GetProcAddress(LibWand, 'DrawSetVectorGraphics');
-  Pointer(IsDrawingWand):=GetProcAddress(LibWand, 'IsDrawingWand');
-  Pointer(PopDrawingWand):=GetProcAddress(LibWand, 'PopDrawingWand');
-  Pointer(PushDrawingWand):=GetProcAddress(LibWand, 'PushDrawingWand');
-
-  Pointer(DrawGetFontStretch):=GetProcAddress(LibWand, 'DrawGetFontStretch');
-
-  Pointer(DrawGetFontStyle):=GetProcAddress(LibWand, 'DrawGetFontStyle');
-
-  Pointer(DrawGetFontWeight):=GetProcAddress(LibWand, 'DrawGetFontWeight');
-  Pointer(DrawGetStrokeMiterLimit):=GetProcAddress(LibWand, 'DrawGetStrokeMiterLimit');
-
-  Pointer(ClearDrawingWand):=GetProcAddress(LibWand, 'ClearDrawingWand');
-  Pointer(DrawAffine):=GetProcAddress(LibWand, 'DrawAffine');
-  Pointer(DrawAnnotation):=GetProcAddress(LibWand, 'DrawAnnotation');
-  Pointer(DrawArc):=GetProcAddress(LibWand, 'DrawArc');
-  Pointer(DrawBezier):=GetProcAddress(LibWand, 'DrawBezier');
-  Pointer(DrawCircle):=GetProcAddress(LibWand, 'DrawCircle');
-  Pointer(DrawColor):=GetProcAddress(LibWand, 'DrawColor');
-  Pointer(DrawComment):=GetProcAddress(LibWand, 'DrawComment');
-  Pointer(DrawEllipse):=GetProcAddress(LibWand, 'DrawEllipse');
-  Pointer(DrawGetFillColor):=GetProcAddress(LibWand, 'DrawGetFillColor');
-  Pointer(DrawGetStrokeColor):=GetProcAddress(LibWand, 'DrawGetStrokeColor');
-  Pointer(DrawGetTextUnderColor):=GetProcAddress(LibWand, 'DrawGetTextUnderColor');
-  Pointer(DrawLine):=GetProcAddress(LibWand, 'DrawLine');
-  Pointer(DrawMatte):=GetProcAddress(LibWand, 'DrawMatte');
-  Pointer(DrawPathClose):=GetProcAddress(LibWand, 'DrawPathClose');
-  Pointer(DrawPathCurveToAbsolute):=GetProcAddress(LibWand, 'DrawPathCurveToAbsolute');
-  Pointer(DrawPathCurveToRelative):=GetProcAddress(LibWand, 'DrawPathCurveToRelative');
-  Pointer(DrawPathCurveToQuadraticBezierAbsolute):=GetProcAddress(LibWand, 'DrawPathCurveToQuadraticBezierAbsolute');
-  Pointer(DrawPathCurveToQuadraticBezierRelative):=GetProcAddress(LibWand, 'DrawPathCurveToQuadraticBezierRelative');
-  Pointer(DrawPathCurveToQuadraticBezierSmoothAbsolute):=GetProcAddress(LibWand, 'DrawPathCurveToQuadraticBezierSmoothAbsolute');
-  Pointer(DrawPathCurveToQuadraticBezierSmoothRelative):=GetProcAddress(LibWand, 'DrawPathCurveToQuadraticBezierSmoothRelative');
-  Pointer(DrawPathCurveToSmoothAbsolute):=GetProcAddress(LibWand, 'DrawPathCurveToSmoothAbsolute');
-  Pointer(DrawPathCurveToSmoothRelative):=GetProcAddress(LibWand, 'DrawPathCurveToSmoothRelative');
-  Pointer(DrawPathEllipticArcAbsolute):=GetProcAddress(LibWand, 'DrawPathEllipticArcAbsolute');
-  Pointer(DrawPathEllipticArcRelative):=GetProcAddress(LibWand, 'DrawPathEllipticArcRelative');
-  Pointer(DrawPathFinish):=GetProcAddress(LibWand, 'DrawPathFinish');
-  Pointer(DrawPathLineToAbsolute):=GetProcAddress(LibWand, 'DrawPathLineToAbsolute');
-  Pointer(DrawPathLineToRelative):=GetProcAddress(LibWand, 'DrawPathLineToRelative');
-  Pointer(DrawPathLineToVerticalAbsolute):=GetProcAddress(LibWand, 'DrawPathLineToVerticalAbsolute');
-  Pointer(DrawPathLineToVerticalRelative):=GetProcAddress(LibWand, 'DrawPathLineToVerticalRelative');
-  Pointer(DrawPathMoveToAbsolute):=GetProcAddress(LibWand, 'DrawPathMoveToAbsolute');
-  Pointer(DrawPathMoveToRelative):=GetProcAddress(LibWand, 'DrawPathMoveToRelative');
-  Pointer(DrawPathStart):=GetProcAddress(LibWand, 'DrawPathStart');
-  Pointer(DrawPoint):=GetProcAddress(LibWand, 'DrawPoint');
-  Pointer(DrawPolygon):=GetProcAddress(LibWand, 'DrawPolygon');
-  Pointer(DrawPolyline):=GetProcAddress(LibWand, 'DrawPolyline');
-  Pointer(DrawPopClipPath):=GetProcAddress(LibWand, 'DrawPopClipPath');
-  Pointer(DrawPopDefs):=GetProcAddress(LibWand, 'DrawPopDefs');
-  Pointer(DrawPushClipPath):=GetProcAddress(LibWand, 'DrawPushClipPath');
-  Pointer(DrawPushDefs):=GetProcAddress(LibWand, 'DrawPushDefs');
-  Pointer(DrawRectangle):=GetProcAddress(LibWand, 'DrawRectangle');
-  Pointer(DrawRotate):=GetProcAddress(LibWand, 'DrawRotate');
-  Pointer(DrawRoundRectangle):=GetProcAddress(LibWand, 'DrawRoundRectangle');
-  Pointer(DrawScale):=GetProcAddress(LibWand, 'DrawScale');
-  Pointer(DrawSetClipRule):=GetProcAddress(LibWand, 'DrawSetClipRule');
-  Pointer(DrawSetClipUnits):=GetProcAddress(LibWand, 'DrawSetClipUnits');
-  Pointer(DrawSetFillColor):=GetProcAddress(LibWand, 'DrawSetFillColor');
-  Pointer(DrawSetFillAlpha):=GetProcAddress(LibWand, 'DrawSetFillAlpha');
-  Pointer(DrawSetFillRule):=GetProcAddress(LibWand, 'DrawSetFillRule');
-  Pointer(DrawSetFontSize):=GetProcAddress(LibWand, 'DrawSetFontSize');
-  Pointer(DrawSetFontStretch):=GetProcAddress(LibWand, 'DrawSetFontStretch');
-  Pointer(DrawSetFontStyle):=GetProcAddress(LibWand, 'DrawSetFontStyle');
-  Pointer(DrawSetFontWeight):=GetProcAddress(LibWand, 'DrawSetFontWeight');
-  Pointer(DrawSetGravity):=GetProcAddress(LibWand, 'DrawSetGravity');
-  Pointer(DrawSkewX):=GetProcAddress(LibWand, 'DrawSkewX');
-  Pointer(DrawSkewY):=GetProcAddress(LibWand, 'DrawSkewY');
-  Pointer(DrawSetStrokeAntialias):=GetProcAddress(LibWand, 'DrawSetStrokeAntialias');
-  Pointer(DrawSetStrokeColor):=GetProcAddress(LibWand, 'DrawSetStrokeColor');
-  Pointer(DrawSetStrokeDashOffset):=GetProcAddress(LibWand, 'DrawSetStrokeDashOffset');
-  Pointer(DrawSetStrokeLineCap):=GetProcAddress(LibWand, 'DrawSetStrokeLineCap');
-  Pointer(DrawSetStrokeLineJoin):=GetProcAddress(LibWand, 'DrawSetStrokeLineJoin');
-  Pointer(DrawSetStrokeMiterLimit):=GetProcAddress(LibWand, 'DrawSetStrokeMiterLimit');
-  Pointer(DrawSetStrokeAlpha):=GetProcAddress(LibWand, 'DrawSetStrokeAlpha');
-  Pointer(DrawSetStrokeWidth):=GetProcAddress(LibWand, 'DrawSetStrokeWidth');
-  Pointer(DrawSetTextAlignment):=GetProcAddress(LibWand, 'DrawSetTextAlignment');
-  Pointer(DrawSetTextAntialias):=GetProcAddress(LibWand, 'DrawSetTextAntialias');
-  Pointer(DrawSetTextDecoration):=GetProcAddress(LibWand, 'DrawSetTextDecoration');
-  Pointer(DrawSetTextEncoding):=GetProcAddress(LibWand, 'DrawSetTextEncoding');
-  Pointer(DrawSetTextUnderColor):=GetProcAddress(LibWand, 'DrawSetTextUnderColor');
-  Pointer(DrawSetViewbox):=GetProcAddress(LibWand, 'DrawSetViewbox');
-  Pointer(DrawTranslate):=GetProcAddress(LibWand, 'DrawTranslate');
-
-  // MagickAttribute.inc
-
-  Pointer(MagickGetException):=GetProcAddress(LibWand, 'MagickGetException');
-  Pointer(MagickGetFilename):=GetProcAddress(LibWand, 'MagickGetFilename');
-  Pointer(MagickGetFormat):=GetProcAddress(LibWand, 'MagickGetFormat');
-  Pointer(MagickGetHomeURL):=GetProcAddress(LibWand, 'MagickGetHomeURL');
-  Pointer(MagickGetOption):=GetProcAddress(LibWand, 'MagickGetOption');
-  Pointer(MagickGetCompression):=GetProcAddress(LibWand, 'MagickGetCompression');
-
-  Pointer(MagickGetCopyright):=GetProcAddress(LibWand, 'MagickGetCopyright');
-  Pointer(MagickGetPackageName):=GetProcAddress(LibWand, 'MagickGetPackageName');
-
-  Pointer(MagickGetQuantumDepth):=GetProcAddress(LibWand, 'MagickGetQuantumDepth');
-  Pointer(MagickGetQuantumRange):=GetProcAddress(LibWand, 'MagickGetQuantumRange');
-  Pointer(MagickGetReleaseDate):=GetProcAddress(LibWand, 'MagickGetReleaseDate');
-  Pointer(MagickGetVersion):=GetProcAddress(LibWand, 'MagickGetVersion');
-
-  Pointer(MagickGetSamplingFactors):=GetProcAddress(LibWand, 'MagickGetSamplingFactors');
-  Pointer(MagickGetInterlaceScheme):=GetProcAddress(LibWand, 'MagickGetInterlaceScheme');
-
-  // PixelIterator.inc
-
-  Pointer(PixelGetIteratorException):=GetProcAddress(LibWand, 'PixelGetIteratorException');
-  Pointer(IsPixelIterator):=GetProcAddress(LibWand, 'IsPixelIterator');
-  Pointer(PixelClearIteratorException):=GetProcAddress(LibWand, 'PixelClearIteratorException');
-  Pointer(PixelSetIteratorRow):=GetProcAddress(LibWand, 'PixelSetIteratorRow');
-  Pointer(PixelSyncIterator):=GetProcAddress(LibWand, 'PixelSyncIterator');
-
-  Pointer(DestroyPixelIterator):=GetProcAddress(LibWand, 'DestroyPixelIterator');
-  Pointer(NewPixelIterator):=GetProcAddress(LibWand, 'NewPixelIterator');
-  Pointer(NewPixelRegionIterator):=GetProcAddress(LibWand, 'NewPixelRegionIterator');
-
-  Pointer(PixelGetNextIteratorRow):=GetProcAddress(LibWand, 'PixelGetNextIteratorRow');
-  Pointer(PixelGetPreviousIteratorRow):=GetProcAddress(LibWand, 'PixelGetPreviousIteratorRow');
-
-  Pointer(ClearPixelIterator):=GetProcAddress(LibWand, 'ClearPixelIterator');
-  Pointer(PixelResetIterator):=GetProcAddress(LibWand, 'PixelResetIterator');
-  Pointer(PixelSetFirstIteratorRow):=GetProcAddress(LibWand, 'PixelSetFirstIteratorRow');
-  Pointer(PixelSetLastIteratorRow):=GetProcAddress(LibWand, 'PixelSetLastIteratorRow');
+  {$UNDEF IMPLEMENTATION}
 end;
 
 

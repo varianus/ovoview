@@ -19,6 +19,7 @@
 {
   Declaration from drawing-wand.c
 }
+{$IFDEF INTERFACE}
 type
  PathOperation = (
   PathDefaultOperation,
@@ -337,4 +338,140 @@ var
   DrawSetTextUnderColor:TDrawSetTextUnderColor=nil;
   DrawSetViewbox:TDrawSetViewbox=nil;
   DrawTranslate:TDrawTranslate=nil;
+{$ENDIF INTERFACE}
 
+{$IFDEF IMPLEMENTATION}
+
+  Pointer(DrawGetTextAlignment):=GetProcAddress(LibWand, 'DrawGetTextAlignment');
+
+  Pointer(DrawGetClipPath):=GetProcAddress(LibWand, 'DrawGetClipPath');
+  Pointer(DrawGetException):=GetProcAddress(LibWand, 'DrawGetException');
+  Pointer(DrawGetFont):=GetProcAddress(LibWand, 'DrawGetFont');
+  Pointer(DrawGetFontFamily):=GetProcAddress(LibWand, 'DrawGetFontFamily');
+  Pointer(DrawGetTextEncoding):=GetProcAddress(LibWand, 'DrawGetTextEncoding');
+  Pointer(DrawGetVectorGraphics):=GetProcAddress(LibWand, 'DrawGetVectorGraphics');
+
+  Pointer(DrawGetClipUnits):=GetProcAddress(LibWand, 'DrawGetClipUnits');
+
+  Pointer(DrawGetTextDecoration):=GetProcAddress(LibWand, 'DrawGetTextDecoration');
+
+  Pointer(DrawGetFillAlpha):=GetProcAddress(LibWand, 'DrawGetFillAlpha');
+  Pointer(DrawGetFontSize):=GetProcAddress(LibWand, 'DrawGetFontSize');
+  Pointer(DrawGetStrokeDashArray):=GetProcAddress(LibWand, 'DrawGetStrokeDashArray');
+  Pointer(DrawGetStrokeDashOffset):=GetProcAddress(LibWand, 'DrawGetStrokeDashOffset');
+  Pointer(DrawGetStrokeAlpha):=GetProcAddress(LibWand, 'DrawGetStrokeAlpha');
+  Pointer(DrawGetStrokeWidth):=GetProcAddress(LibWand, 'DrawGetStrokeWidth');
+
+  Pointer(PeekDrawingWand):=GetProcAddress(LibWand, 'PeekDrawingWand');
+
+  Pointer(CloneDrawingWand):=GetProcAddress(LibWand, 'CloneDrawingWand');
+  Pointer(DestroyDrawingWand):=GetProcAddress(LibWand, 'DestroyDrawingWand');
+
+  Pointer(NewDrawingWand):=GetProcAddress(LibWand, 'NewDrawingWand');
+
+  Pointer(DrawGetClipRule):=GetProcAddress(LibWand, 'DrawGetClipRule');
+  Pointer(DrawGetFillRule):=GetProcAddress(LibWand, 'DrawGetFillRule');
+
+  Pointer(DrawGetGravity):=GetProcAddress(LibWand, 'DrawGetGravity');
+
+  Pointer(DrawGetStrokeLineCap):=GetProcAddress(LibWand, 'DrawGetStrokeLineCap');
+
+  Pointer(DrawGetStrokeLineJoin):=GetProcAddress(LibWand, 'DrawGetStrokeLineJoin');
+
+  Pointer(DrawClearException):=GetProcAddress(LibWand, 'DrawClearException');
+  Pointer(DrawComposite):=GetProcAddress(LibWand, 'DrawComposite');
+  Pointer(DrawGetStrokeAntialias):=GetProcAddress(LibWand, 'DrawGetStrokeAntialias');
+  Pointer(DrawGetTextAntialias):=GetProcAddress(LibWand, 'DrawGetTextAntialias');
+  Pointer(DrawPopPattern):=GetProcAddress(LibWand, 'DrawPopPattern');
+  Pointer(DrawPushPattern):=GetProcAddress(LibWand, 'DrawPushPattern');
+  Pointer(DrawRender):=GetProcAddress(LibWand, 'DrawRender');
+  Pointer(DrawSetClipPath):=GetProcAddress(LibWand, 'DrawSetClipPath');
+  Pointer(DrawSetFillPatternURL):=GetProcAddress(LibWand, 'DrawSetFillPatternURL');
+  Pointer(DrawSetFont):=GetProcAddress(LibWand, 'DrawSetFont');
+  Pointer(DrawSetFontFamily):=GetProcAddress(LibWand, 'DrawSetFontFamily');
+  Pointer(DrawSetStrokeDashArray):=GetProcAddress(LibWand, 'DrawSetStrokeDashArray');
+  Pointer(DrawSetStrokePatternURL):=GetProcAddress(LibWand, 'DrawSetStrokePatternURL');
+  Pointer(DrawSetVectorGraphics):=GetProcAddress(LibWand, 'DrawSetVectorGraphics');
+  Pointer(IsDrawingWand):=GetProcAddress(LibWand, 'IsDrawingWand');
+  Pointer(PopDrawingWand):=GetProcAddress(LibWand, 'PopDrawingWand');
+  Pointer(PushDrawingWand):=GetProcAddress(LibWand, 'PushDrawingWand');
+
+  Pointer(DrawGetFontStretch):=GetProcAddress(LibWand, 'DrawGetFontStretch');
+
+  Pointer(DrawGetFontStyle):=GetProcAddress(LibWand, 'DrawGetFontStyle');
+
+  Pointer(DrawGetFontWeight):=GetProcAddress(LibWand, 'DrawGetFontWeight');
+  Pointer(DrawGetStrokeMiterLimit):=GetProcAddress(LibWand, 'DrawGetStrokeMiterLimit');
+
+  Pointer(ClearDrawingWand):=GetProcAddress(LibWand, 'ClearDrawingWand');
+  Pointer(DrawAffine):=GetProcAddress(LibWand, 'DrawAffine');
+  Pointer(DrawAnnotation):=GetProcAddress(LibWand, 'DrawAnnotation');
+  Pointer(DrawArc):=GetProcAddress(LibWand, 'DrawArc');
+  Pointer(DrawBezier):=GetProcAddress(LibWand, 'DrawBezier');
+  Pointer(DrawCircle):=GetProcAddress(LibWand, 'DrawCircle');
+  Pointer(DrawColor):=GetProcAddress(LibWand, 'DrawColor');
+  Pointer(DrawComment):=GetProcAddress(LibWand, 'DrawComment');
+  Pointer(DrawEllipse):=GetProcAddress(LibWand, 'DrawEllipse');
+  Pointer(DrawGetFillColor):=GetProcAddress(LibWand, 'DrawGetFillColor');
+  Pointer(DrawGetStrokeColor):=GetProcAddress(LibWand, 'DrawGetStrokeColor');
+  Pointer(DrawGetTextUnderColor):=GetProcAddress(LibWand, 'DrawGetTextUnderColor');
+  Pointer(DrawLine):=GetProcAddress(LibWand, 'DrawLine');
+  Pointer(DrawMatte):=GetProcAddress(LibWand, 'DrawMatte');
+  Pointer(DrawPathClose):=GetProcAddress(LibWand, 'DrawPathClose');
+  Pointer(DrawPathCurveToAbsolute):=GetProcAddress(LibWand, 'DrawPathCurveToAbsolute');
+  Pointer(DrawPathCurveToRelative):=GetProcAddress(LibWand, 'DrawPathCurveToRelative');
+  Pointer(DrawPathCurveToQuadraticBezierAbsolute):=GetProcAddress(LibWand, 'DrawPathCurveToQuadraticBezierAbsolute');
+  Pointer(DrawPathCurveToQuadraticBezierRelative):=GetProcAddress(LibWand, 'DrawPathCurveToQuadraticBezierRelative');
+  Pointer(DrawPathCurveToQuadraticBezierSmoothAbsolute):=GetProcAddress(LibWand, 'DrawPathCurveToQuadraticBezierSmoothAbsolute');
+  Pointer(DrawPathCurveToQuadraticBezierSmoothRelative):=GetProcAddress(LibWand, 'DrawPathCurveToQuadraticBezierSmoothRelative');
+  Pointer(DrawPathCurveToSmoothAbsolute):=GetProcAddress(LibWand, 'DrawPathCurveToSmoothAbsolute');
+  Pointer(DrawPathCurveToSmoothRelative):=GetProcAddress(LibWand, 'DrawPathCurveToSmoothRelative');
+  Pointer(DrawPathEllipticArcAbsolute):=GetProcAddress(LibWand, 'DrawPathEllipticArcAbsolute');
+  Pointer(DrawPathEllipticArcRelative):=GetProcAddress(LibWand, 'DrawPathEllipticArcRelative');
+  Pointer(DrawPathFinish):=GetProcAddress(LibWand, 'DrawPathFinish');
+  Pointer(DrawPathLineToAbsolute):=GetProcAddress(LibWand, 'DrawPathLineToAbsolute');
+  Pointer(DrawPathLineToRelative):=GetProcAddress(LibWand, 'DrawPathLineToRelative');
+  Pointer(DrawPathLineToVerticalAbsolute):=GetProcAddress(LibWand, 'DrawPathLineToVerticalAbsolute');
+  Pointer(DrawPathLineToVerticalRelative):=GetProcAddress(LibWand, 'DrawPathLineToVerticalRelative');
+  Pointer(DrawPathMoveToAbsolute):=GetProcAddress(LibWand, 'DrawPathMoveToAbsolute');
+  Pointer(DrawPathMoveToRelative):=GetProcAddress(LibWand, 'DrawPathMoveToRelative');
+  Pointer(DrawPathStart):=GetProcAddress(LibWand, 'DrawPathStart');
+  Pointer(DrawPoint):=GetProcAddress(LibWand, 'DrawPoint');
+  Pointer(DrawPolygon):=GetProcAddress(LibWand, 'DrawPolygon');
+  Pointer(DrawPolyline):=GetProcAddress(LibWand, 'DrawPolyline');
+  Pointer(DrawPopClipPath):=GetProcAddress(LibWand, 'DrawPopClipPath');
+  Pointer(DrawPopDefs):=GetProcAddress(LibWand, 'DrawPopDefs');
+  Pointer(DrawPushClipPath):=GetProcAddress(LibWand, 'DrawPushClipPath');
+  Pointer(DrawPushDefs):=GetProcAddress(LibWand, 'DrawPushDefs');
+  Pointer(DrawRectangle):=GetProcAddress(LibWand, 'DrawRectangle');
+  Pointer(DrawRotate):=GetProcAddress(LibWand, 'DrawRotate');
+  Pointer(DrawRoundRectangle):=GetProcAddress(LibWand, 'DrawRoundRectangle');
+  Pointer(DrawScale):=GetProcAddress(LibWand, 'DrawScale');
+  Pointer(DrawSetClipRule):=GetProcAddress(LibWand, 'DrawSetClipRule');
+  Pointer(DrawSetClipUnits):=GetProcAddress(LibWand, 'DrawSetClipUnits');
+  Pointer(DrawSetFillColor):=GetProcAddress(LibWand, 'DrawSetFillColor');
+  Pointer(DrawSetFillAlpha):=GetProcAddress(LibWand, 'DrawSetFillAlpha');
+  Pointer(DrawSetFillRule):=GetProcAddress(LibWand, 'DrawSetFillRule');
+  Pointer(DrawSetFontSize):=GetProcAddress(LibWand, 'DrawSetFontSize');
+  Pointer(DrawSetFontStretch):=GetProcAddress(LibWand, 'DrawSetFontStretch');
+  Pointer(DrawSetFontStyle):=GetProcAddress(LibWand, 'DrawSetFontStyle');
+  Pointer(DrawSetFontWeight):=GetProcAddress(LibWand, 'DrawSetFontWeight');
+  Pointer(DrawSetGravity):=GetProcAddress(LibWand, 'DrawSetGravity');
+  Pointer(DrawSkewX):=GetProcAddress(LibWand, 'DrawSkewX');
+  Pointer(DrawSkewY):=GetProcAddress(LibWand, 'DrawSkewY');
+  Pointer(DrawSetStrokeAntialias):=GetProcAddress(LibWand, 'DrawSetStrokeAntialias');
+  Pointer(DrawSetStrokeColor):=GetProcAddress(LibWand, 'DrawSetStrokeColor');
+  Pointer(DrawSetStrokeDashOffset):=GetProcAddress(LibWand, 'DrawSetStrokeDashOffset');
+  Pointer(DrawSetStrokeLineCap):=GetProcAddress(LibWand, 'DrawSetStrokeLineCap');
+  Pointer(DrawSetStrokeLineJoin):=GetProcAddress(LibWand, 'DrawSetStrokeLineJoin');
+  Pointer(DrawSetStrokeMiterLimit):=GetProcAddress(LibWand, 'DrawSetStrokeMiterLimit');
+  Pointer(DrawSetStrokeAlpha):=GetProcAddress(LibWand, 'DrawSetStrokeAlpha');
+  Pointer(DrawSetStrokeWidth):=GetProcAddress(LibWand, 'DrawSetStrokeWidth');
+  Pointer(DrawSetTextAlignment):=GetProcAddress(LibWand, 'DrawSetTextAlignment');
+  Pointer(DrawSetTextAntialias):=GetProcAddress(LibWand, 'DrawSetTextAntialias');
+  Pointer(DrawSetTextDecoration):=GetProcAddress(LibWand, 'DrawSetTextDecoration');
+  Pointer(DrawSetTextEncoding):=GetProcAddress(LibWand, 'DrawSetTextEncoding');
+  Pointer(DrawSetTextUnderColor):=GetProcAddress(LibWand, 'DrawSetTextUnderColor');
+  Pointer(DrawSetViewbox):=GetProcAddress(LibWand, 'DrawSetViewbox');
+  Pointer(DrawTranslate):=GetProcAddress(LibWand, 'DrawTranslate');
+{$ENDIF IMPLEMENTATION}

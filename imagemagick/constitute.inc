@@ -18,7 +18,7 @@
 
 type
  StorageType = (
-  UndefinedPixel,
+  UnknownPixel,
   CharPixel,
   DoublePixel,
   FloatPixel,
@@ -28,5 +28,12 @@ type
   ShortPixel
  );
 
+var
+ DispatchImage: function(const Image: PImage; const xOffset, yOffset: Integer;
+       const width, height: Cardinal; const Map: Pchar; const _storageType: StorageType;
+       Pixels: Pointer; eInfo: PExceptionInfo): LongBool; cdecl;
 
+ ExportImagePixels: function(const Image: PImage; const xOffset, yOffset: Integer;
+             const width, height: Cardinal; const Map: Pchar; const _storageType: StorageType;
+             Pixels: Pointer; eInfo: PExceptionInfo): LongBool; cdecl;
 

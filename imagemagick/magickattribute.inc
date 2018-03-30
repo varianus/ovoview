@@ -16,7 +16,7 @@
   Set or Get Magick Wand Attributes.
 }
 {WandExports}
-
+{$IFDEF INTERFACE}
 Type
   TMagickGetException = function(wand: PMagickWand; severity: PExceptionType): PChar; cdecl;
   TMagickGetFilename= function (const wand: PMagickWand): PChar; cdecl;
@@ -34,7 +34,6 @@ Type
 
   TMagickGetSamplingFactors=function (wand: PMagickWand; number_factors: Pculong): Pdouble; cdecl;
   TMagickGetInterlaceScheme=function (wand: PMagickWand): InterlaceType; cdecl;
-
 
 var
 
@@ -55,4 +54,24 @@ var
 
   MagickGetSamplingFactors:TMagickGetSamplingFactors=nil;
   MagickGetInterlaceScheme:TMagickGetInterlaceScheme=nil;
+{$ENDIF INTERFACE}
 
+{$IFDEF IMPLEMENTATION}
+  Pointer(MagickGetException):=GetProcAddress(LibWand, 'MagickGetException');
+  Pointer(MagickGetFilename):=GetProcAddress(LibWand, 'MagickGetFilename');
+  Pointer(MagickGetFormat):=GetProcAddress(LibWand, 'MagickGetFormat');
+  Pointer(MagickGetHomeURL):=GetProcAddress(LibWand, 'MagickGetHomeURL');
+  Pointer(MagickGetOption):=GetProcAddress(LibWand, 'MagickGetOption');
+  Pointer(MagickGetCompression):=GetProcAddress(LibWand, 'MagickGetCompression');
+
+  Pointer(MagickGetCopyright):=GetProcAddress(LibWand, 'MagickGetCopyright');
+  Pointer(MagickGetPackageName):=GetProcAddress(LibWand, 'MagickGetPackageName');
+
+  Pointer(MagickGetQuantumDepth):=GetProcAddress(LibWand, 'MagickGetQuantumDepth');
+  Pointer(MagickGetQuantumRange):=GetProcAddress(LibWand, 'MagickGetQuantumRange');
+  Pointer(MagickGetReleaseDate):=GetProcAddress(LibWand, 'MagickGetReleaseDate');
+  Pointer(MagickGetVersion):=GetProcAddress(LibWand, 'MagickGetVersion');
+
+  Pointer(MagickGetSamplingFactors):=GetProcAddress(LibWand, 'MagickGetSamplingFactors');
+  Pointer(MagickGetInterlaceScheme):=GetProcAddress(LibWand, 'MagickGetInterlaceScheme');
+{$ENDIF IMPLEMENTATION}

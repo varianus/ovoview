@@ -20,6 +20,7 @@
 {
   Declaration from pixel-wand.c
 }
+{$IFDEF INTERFACE}
 type
   TPixelWand = record
     id        : culong;
@@ -157,5 +158,69 @@ var
   PixelSetYellowQuantum:TPixelSetYellowQuantum=nil;
 
   PixelGetMagickColor:TPixelGetMagickColor=nil;
+{$ENDIF INTERFACE}
 
+{$IFDEF IMPLEMENTATION}
+Pointer(PixelGetColorAsString):=GetProcAddress(LibWand, 'PixelGetColorAsString');
+Pointer(PixelGetException):=GetProcAddress(LibWand, 'PixelGetException');
+Pointer(PixelGetAlpha):=GetProcAddress(LibWand, 'PixelGetAlpha');
+Pointer(PixelGetBlack):=GetProcAddress(LibWand, 'PixelGetBlack');
+Pointer(PixelGetBlue):=GetProcAddress(LibWand, 'PixelGetBlue');
+Pointer(PixelGetCyan):=GetProcAddress(LibWand, 'PixelGetCyan');
+Pointer(PixelGetMagenta):=GetProcAddress(LibWand, 'PixelGetMagenta');
+Pointer(PixelGetOpacity):=GetProcAddress(LibWand, 'PixelGetOpacity');
+Pointer(PixelGetRed):=GetProcAddress(LibWand, 'PixelGetRed');
+Pointer(PixelGetYellow):=GetProcAddress(LibWand, 'PixelGetYellow');
+Pointer(PixelGetIndex):=GetProcAddress(LibWand, 'PixelGetIndex');
 
+Pointer(IsPixelWand):=GetProcAddress(LibWand, 'IsPixelWand');
+Pointer(IsPixelWandSimilar):=GetProcAddress(LibWand, 'IsPixelWandSimilar');
+Pointer(PixelClearException):=GetProcAddress(LibWand, 'PixelClearException');
+Pointer(PixelSetColor):=GetProcAddress(LibWand, 'PixelSetColor');
+
+Pointer(DestroyPixelWand):=GetProcAddress(LibWand, 'DestroyPixelWand');
+Pointer(DestroyPixelWands):=GetProcAddress(LibWand, 'DestroyPixelWands');
+Pointer(NewPixelWand):=GetProcAddress(LibWand, 'NewPixelWand');
+Pointer(NewPixelWands):=GetProcAddress(LibWand, 'NewPixelWands');
+
+Pointer(PixelGetAlphaQuantum):=GetProcAddress(LibWand, 'PixelGetAlphaQuantum');
+Pointer(PixelGetBlackQuantum):=GetProcAddress(LibWand, 'PixelGetBlackQuantum');
+Pointer(PixelGetBlueQuantum):=GetProcAddress(LibWand, 'PixelGetBlueQuantum');
+Pointer(PixelGetCyanQuantum):=GetProcAddress(LibWand, 'PixelGetCyanQuantum');
+Pointer(PixelGetGreenQuantum):=GetProcAddress(LibWand, 'PixelGetGreenQuantum');
+Pointer(PixelGetMagentaQuantum):=GetProcAddress(LibWand, 'PixelGetMagentaQuantum');
+Pointer(PixelGetOpacityQuantum):=GetProcAddress(LibWand, 'PixelGetOpacityQuantum');
+Pointer(PixelGetRedQuantum):=GetProcAddress(LibWand, 'PixelGetRedQuantum');
+Pointer(PixelGetYellowQuantum):=GetProcAddress(LibWand, 'PixelGetYellowQuantum');
+
+Pointer(PixelGetColorCount):=GetProcAddress(LibWand, 'PixelGetColorCount');
+
+Pointer(ClearPixelWand):=GetProcAddress(LibWand, 'ClearPixelWand');
+Pointer(PixelGetQuantumColor):=GetProcAddress(LibWand, 'PixelGetQuantumColor');
+Pointer(PixelSetAlpha):=GetProcAddress(LibWand, 'PixelSetAlpha');
+Pointer(PixelSetAlphaQuantum):=GetProcAddress(LibWand, 'PixelSetAlphaQuantum');
+Pointer(PixelSetBlack):=GetProcAddress(LibWand, 'PixelSetBlack');
+Pointer(PixelSetBlackQuantum):=GetProcAddress(LibWand, 'PixelSetBlackQuantum');
+Pointer(PixelSetBlue):=GetProcAddress(LibWand, 'PixelSetBlue');
+Pointer(PixelSetBlueQuantum):=GetProcAddress(LibWand, 'PixelSetBlueQuantum');
+Pointer(PixelSetColorCount):=GetProcAddress(LibWand, 'PixelSetColorCount');
+
+Pointer(PixelSetCyan):=GetProcAddress(LibWand, 'PixelSetCyan');
+Pointer(PixelSetCyanQuantum):=GetProcAddress(LibWand, 'PixelSetCyanQuantum');
+Pointer(PixelSetGreen):=GetProcAddress(LibWand, 'PixelSetGreen');
+Pointer(PixelSetGreenQuantum):=GetProcAddress(LibWand, 'PixelSetGreenQuantum');
+
+Pointer(PixelSetIndex):=GetProcAddress(LibWand, 'PixelSetIndex');
+Pointer(PixelSetMagenta):=GetProcAddress(LibWand, 'PixelSetMagenta');
+Pointer(PixelSetMagentaQuantum):=GetProcAddress(LibWand, 'PixelSetMagentaQuantum');
+Pointer(PixelSetMagickColor):=GetProcAddress(LibWand, 'PixelSetMagickColor');
+Pointer(PixelSetOpacity):=GetProcAddress(LibWand, 'PixelSetOpacity');
+Pointer(PixelSetOpacityQuantum):=GetProcAddress(LibWand, 'PixelSetOpacityQuantum');
+
+Pointer(PixelSetRed):=GetProcAddress(LibWand, 'PixelSetRed');
+Pointer(PixelSetRedQuantum):=GetProcAddress(LibWand, 'PixelSetRedQuantum');
+Pointer(PixelSetYellow):=GetProcAddress(LibWand, 'PixelSetYellow');
+Pointer(PixelSetYellowQuantum):=GetProcAddress(LibWand, 'PixelSetYellowQuantum');
+Pointer(PixelGetMagickColor):=GetProcAddress(LibWand, 'PixelGetMagickColor');
+
+{$ENDIF IMPLEMENTATION}

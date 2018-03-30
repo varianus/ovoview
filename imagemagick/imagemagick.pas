@@ -76,14 +76,24 @@ implementation
 uses
   MagickWand;
 
+procedure LoadFunctions;
+begin
+  Pointer(ExportImagePixels):=GetProcAddress(LibMagick, 'ExportImagePixels');
+end;
+
+procedure UnLoadFunctions;
+begin
+  Pointer(ExportImagePixels):=nil;
+
+end;
+
 function Initialize():boolean;
 begin
   Result:=false;
   if (LibMagick=0) then begin
     LibMagick:=dynLibs.LoadLibrary(LIB_CORE_MAGICK);
-    if (LibMagick>0) then begin
-      Pointer(GetAuthenticPixels):=GetProcAddress(LibMagick, 'GetAuthenticPixels');
-    end;
+    if (LibMagick>0) then
+      LoadFunctions;
   end;
   if (LibWand=0) then begin
     LibWand:=dynLibs.LoadLibrary(LIB_MAGICK_WAND);
@@ -100,7 +110,7 @@ begin
   Result:=false;
   if (LibMagick<>0) then begin
     Result:=dynLibs.UnloadLibrary(LibMagick);
-    Pointer(GetAuthenticPixels):=nil;
+    UnloadFunctions;
     LibMagick:=0;
   end;
   if (LibWand<>0) then begin
