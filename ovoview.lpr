@@ -27,7 +27,7 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, uMain, FilesSupport, Thumbnails, Magick_LCL;
+  Forms, uMain, FilesSupport, Thumbnails, Magick_LCL, uInfo;
 
 {$R *.res}
 

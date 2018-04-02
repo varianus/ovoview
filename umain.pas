@@ -26,14 +26,16 @@ interface
 
 uses
   Classes, SysUtils, types, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, FilesSupport, Thumbnails, Magick_LCL, MagickWand, ImageMagick,
-  StdCtrls, Grids, ActnList, DBActns;
+  ExtCtrls, FilesSupport, Thumbnails, Magick_LCL, uInfo, MagickWand,
+  ImageMagick, StdCtrls, Grids, ActnList, DBActns, Buttons;
 
 type
 
   { TfrmMain }
 
   TfrmMain = class(TForm)
+    Action1: TAction;
+    actShowInfo: TAction;
     actSlideShow: TAction;
     actNext: TAction;
     actPrev: TAction;
@@ -41,13 +43,15 @@ type
     ImageList1: TImageList;
     lvThumbnail: TDrawGrid;
     imgView: TImage;
+    pnlCenter: TPanel;
     sbBottom: TStatusBar;
-    tlbTopBar: TToolBar;
-    septb: TToolButton;
-    ToolButton2: TToolButton;
-    ToolButton4: TToolButton;
+    tlbTopBar: TPanel;
+    ToolButton1: TSpeedButton;
+    ToolButton2: TSpeedButton;
+    ToolButton4: TSpeedButton;
     procedure actNextExecute(Sender: TObject);
     procedure actPrevExecute(Sender: TObject);
+    procedure actShowInfoExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -58,6 +62,9 @@ type
   private
     MaskList: TStringList;
     Manager: TThumbnailManager;
+    Currentwand: PMagickWand;
+
+    procedure GetImageInfo(Wand: PMagickWand; var Results: TStringList);
 
   public
     Function LoadPath(Path:TFileName): integer;
@@ -76,7 +83,7 @@ implementation
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
   ImageMagick.Initialize();
-
+  Currentwand:=nil;
 
   Manager := TThumbnailManager.Create;
 
@@ -103,8 +110,28 @@ begin
     lvThumbnail.Row:= lvThumbnail.Row - 1;
 end;
 
+procedure TfrmMain.actShowInfoExecute(Sender: TObject);
+var
+  Properties: TStringList;
+  TheForm: TfrmInfo;
+begin
+  Properties := TStringList.Create;
+  try
+    GetImageInfo(Currentwand, Properties);
+
+    TheForm := TfrmInfo.Create(Self);
+    TheForm.ValueListEditor1.Strings.Assign(Properties);
+    TheForm.Show;
+  finally
+    Properties.Free;
+  end;
+end;
+
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
+  if Assigned(Currentwand) then
+    Currentwand := DestroyMagickWand(Currentwand);
+
   MaskList.Free;
   Manager.Free;
   ImageMagick.Finalize();
@@ -113,7 +140,7 @@ end;
 procedure TfrmMain.FormResize(Sender: TObject);
 begin
  //
- septb.Width:= (tlbTopBar.Width - (36*2)) div 2;
+ pnlCenter.Left:= (tlbTopBar.Width - pnlCenter.Width) div 2;
 
 end;
 
@@ -127,34 +154,56 @@ end;
 procedure TfrmMain.lvThumbnailSelectCell(Sender: TObject; aCol, aRow: Integer;
   var CanSelect: Boolean);
 var
-  wand: PMagickWand;
   status: MagickBooleanType;
   bm:TBitmap;
   H,W: integer;
   NewSize, _Constraints: TSize;
 begin
-  wand := NewMagickWand();
-  try
-    status := MagickReadImage(wand, PChar(Manager[aRow].FullName));
-    H := MagickGetImageHeight(wand);
-    W := MagickGetImageWidth(wand);
-    if (H > imgView.Height) or (W > imgView.Width) then
-      begin
-        _Constraints:= TSize.Create(imgView.Width,imgView.Height);
-        NewSize:=Manager.GetPreviewScaleSize(W, H, _Constraints);
-        MagickResizeImage(wand, NewSize.cx, NewSize.cy, LanczosFilter, 1.0);
-      end
-    else
-      NewSize:= TSize.Create(W, H);
-    bm:= TBitmap.Create;
-    LoadMagickBitmapWand4(Wand, bm);
-    imgView.picture.Assign(bm);
-    bm.free;
-    sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Manager[aRow].FullName), W, H, (Newsize.cx / W) * 100]);
+  if Manager.Count = 0 then exit;
 
-  finally
-    wand := DestroyMagickWand(wand);
-  end;
+  if Assigned(Currentwand) then
+    begin
+      Currentwand := DestroyMagickWand(Currentwand);
+      CurrentWand := nil;
+    end;
+
+  Currentwand := NewMagickWand();
+
+  status := MagickReadImage(Currentwand, PChar(Manager[aRow].FullName));
+  H := MagickGetImageHeight(Currentwand);
+  W := MagickGetImageWidth(Currentwand);
+  if (H > imgView.Height) or (W > imgView.Width) then
+    begin
+      _Constraints:= TSize.Create(imgView.Width,imgView.Height);
+      NewSize:=Manager.GetPreviewScaleSize(W, H, _Constraints);
+      MagickResizeImage(Currentwand, NewSize.cx, NewSize.cy, LanczosFilter, 1.0);
+    end
+  else
+    NewSize:= TSize.Create(W, H);
+  bm:= TBitmap.Create;
+  LoadMagickBitmapWand4(CurrentWand, bm);
+  imgView.picture.Assign(bm);
+  bm.free;
+  sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Manager[aRow].FullName), W, H, (Newsize.cx / W) * 100]);
+
+
+end;
+
+procedure TfrmMain.GetImageInfo(Wand: PMagickWand; Var Results:TStringList);
+var
+
+  i, propNo: cardinal;
+  propList: PPChar;
+  propertyValue:Pchar;
+
+begin
+  Results.Clear;
+  propList:= MagickGetImageProperties(Wand, '*', @Propno);
+  for i := 0 to pred(propNo) do
+    begin
+      propertyValue:=MagickGetImageProperty(Wand,propList[i]);
+      Results.Values[String(propList[i])]:= String(propertyValue);
+    end;
 end;
 
 function TfrmMain.LoadPath(Path: TFileName): integer;

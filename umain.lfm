@@ -1,27 +1,26 @@
 object frmMain: TfrmMain
   Left = 350
-  Height = 565
+  Height = 490
   Top = 250
-  Width = 1072
+  Width = 824
   Caption = 'frmMain'
-  ClientHeight = 565
-  ClientWidth = 1072
+  ClientHeight = 490
+  ClientWidth = 824
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
-  LCLVersion = '1.9.0.0'
   object sbBottom: TStatusBar
     Left = 0
     Height = 21
-    Top = 544
-    Width = 1072
+    Top = 469
+    Width = 824
     Panels = <>
   end
   object imgView: TImage
     Left = 152
-    Height = 518
-    Top = 26
-    Width = 920
+    Height = 431
+    Top = 38
+    Width = 672
     Align = alClient
     Center = True
     Proportional = True
@@ -30,8 +29,8 @@ object frmMain: TfrmMain
   end
   object lvThumbnail: TDrawGrid
     Left = 0
-    Height = 518
-    Top = 26
+    Height = 431
+    Top = 38
     Width = 152
     Align = alLeft
     ColCount = 1
@@ -47,29 +46,59 @@ object frmMain: TfrmMain
     OnDrawCell = lvThumbnailDrawCell
     OnSelectCell = lvThumbnailSelectCell
   end
-  object tlbTopBar: TToolBar
+  object tlbTopBar: TPanel
     Left = 0
-    Height = 26
+    Height = 38
     Top = 0
-    Width = 1072
-    Images = ImageList1
+    Width = 824
+    Align = alTop
+    BevelOuter = bvNone
+    ClientHeight = 38
+    ClientWidth = 824
     TabOrder = 2
-    object septb: TToolButton
-      Left = 1
-      Height = 22
-      Top = 2
-      Caption = 'septb'
-      Style = tbsSeparator
+    object ToolButton1: TSpeedButton
+      Left = 784
+      Height = 38
+      Top = 0
+      Width = 40
+      Action = actShowInfo
+      Align = alRight
+      AutoSize = True
+      Flat = True
+      ShowCaption = False
     end
-    object ToolButton2: TToolButton
-      Left = 9
-      Top = 2
-      Action = actPrev
-    end
-    object ToolButton4: TToolButton
-      Left = 49
-      Top = 2
-      Action = actNext
+    object pnlCenter: TPanel
+      Left = 448
+      Height = 40
+      Top = 0
+      Width = 80
+      AutoSize = True
+      BevelOuter = bvNone
+      ClientHeight = 40
+      ClientWidth = 80
+      TabOrder = 0
+      object ToolButton4: TSpeedButton
+        Left = 40
+        Height = 40
+        Top = 0
+        Width = 40
+        Action = actNext
+        Align = alLeft
+        AutoSize = True
+        Flat = True
+        ShowCaption = False
+      end
+      object ToolButton2: TSpeedButton
+        Left = 0
+        Height = 40
+        Top = 0
+        Width = 40
+        Action = actPrev
+        Align = alLeft
+        AutoSize = True
+        Flat = True
+        ShowCaption = False
+      end
     end
   end
   object ActionList: TActionList
@@ -89,6 +118,14 @@ object frmMain: TfrmMain
       Caption = 'Previous'
       ImageIndex = 2
       OnExecute = actPrevExecute
+    end
+    object Action1: TAction
+      Caption = 'Action1'
+    end
+    object actShowInfo: TAction
+      Caption = 'Info'
+      ImageIndex = 3
+      OnExecute = actShowInfoExecute
     end
   end
   object ImageList1: TImageList
@@ -746,6 +783,29 @@ object frmMain: TfrmMain
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000
+    }
+    BitmapAdv = {
+      4C69010000004C7A040000001800000018000000740200000000000078DAED99
+      BB4A034114863720A8D87945216914413B1F4051B4D40710B1F152A828965E1E
+      41F1565A682782166A636CD50708820F605A1514540C5EE27FF01F08CB5E924D
+      4E34303F7CB06476FE4CCE993967D9388ED53F579DB2FF2E6857F4CF82673003
+      9A95FC855790045D4AFE8627B006DA94FC852F70018694FC0DDF601B742BF90B
+      9FE0068C802A45FF61057FADF898FC0E2AEECFD60A3A5F4F8AF541BBBE69D767
+      2B2BABCAD35E9E7DC3D4D742257D2F057A414CC1DFCC7B013BA045C9DFF4C353
+      D0A3E46F780373A05EC9DFC4EB28A7975592BFC46756213E92DF13A5FC6AED4F
+      EDF3A55D1FACACACACFE4AF9D62DA981FB0AFE31D6EE146B7929FD5BD8735E4A
+      D0BFDCEAE1B3D097AB8716EBDFC0679F379FDE5F8CBF3C8B1CBBE2516AFF2345
+      7F87CF3C5AF129477ECBB53FCB71BEDCF561CF96532BAB8224E73301A6C12148
+      830C49F3B329DE138BE03F0EAEC147404D96B12B3056806F23D8E27C59EB3998
+      071DA086C8F502C732BC778373C3B4C51A7F0F96D81783D6B20C1E38673324DE
+      E35C8B78F7B9C6AB9DDFF7D0EDBCCE553FBF23CB5879E523C17867B86EB7C4F7
+      8C78BDEF5EE15CC947DC637C9AF93AF7894998BFC42A498F498FF143FEBE799F
+      F805C5C768911E071E63698E7514E1DF498F3B8F31B3CF6A7CE686C547544B8F
+      F708FED2076F497704FFB0F8E4E31F141F93DF8522FC83F23B95B33F1B23F837
+      39BFFFB989C784CFF9BA621E9623E47795732F7DCE578C673BCBB3DE5FC0FE1C
+      008F9C3B1A52AF3758AB1E78E6836A6213D7FDC839EB79D6E7CD9CFA9C64DE3A
+      B9FF6A79BDC8789B7DBD1E526BDD1A633EC2FACB256312A53FC659AB0EB8A7DF
+      C91D3F9BE03D51FA6345E807BA4562A5
     }
   end
 end
