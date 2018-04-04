@@ -26,8 +26,8 @@ interface
 
 uses
   Classes, SysUtils, types, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, FilesSupport, Thumbnails, Magick_LCL, uInfo, MagickWand,
-  ImageMagick, StdCtrls, Grids, ActnList, DBActns, Buttons;
+  ExtCtrls, Thumbnails, Magick_LCL, uInfo, MagickWand,
+  ImageMagick, StdCtrls, Grids, ActnList, Buttons;
 
 type
 
@@ -65,6 +65,8 @@ type
     Currentwand: PMagickWand;
 
     procedure GetImageInfo(Wand: PMagickWand; var Results: TStringList);
+    procedure LoadImage(const Image: TFileName);
+    procedure RenderImage(const Image: TFileName; Dest: TPicture);
 
   public
     Function LoadPath(Path:TFileName): integer;
@@ -148,18 +150,51 @@ procedure TfrmMain.lvThumbnailDrawCell(Sender: TObject; aCol, aRow: Integer;
   aRect: TRect; aState: TGridDrawState);
 begin
   lvThumbnail.Canvas.FillRect(aRect);
+
+  if Manager.Count = 0 then exit;
+
   lvThumbnail.Canvas.Draw(aRect.Left+2, aRect.Top+2, Manager.Items[aRow].Image);
 end;
 
 procedure TfrmMain.lvThumbnailSelectCell(Sender: TObject; aCol, aRow: Integer;
   var CanSelect: Boolean);
+begin
+  if Manager.Count = 0 then exit;
+
+  LoadImage(Manager[aRow].FullName);
+end;
+
+procedure TfrmMain.RenderImage(const Image: TFileName; Dest: TPicture);
 var
-  status: MagickBooleanType;
   bm:TBitmap;
   H,W: integer;
   NewSize, _Constraints: TSize;
 begin
-  if Manager.Count = 0 then exit;
+  H := MagickGetImageHeight(Currentwand);
+  W := MagickGetImageWidth(Currentwand);
+  if (H > Dest.Height) or (W > Dest.Width) then
+    begin
+      _Constraints:= TSize.Create(Dest.Width,Dest.Height);
+      NewSize:=Manager.GetPreviewScaleSize(W, H, _Constraints);
+      MagickResizeImage(Currentwand, NewSize.cx, NewSize.cy, LanczosFilter, 1.0);
+    end
+  else
+    NewSize:= TSize.Create(W, H);
+
+  bm:= TBitmap.Create;
+  try
+    LoadMagickBitmapWand4(CurrentWand, bm);
+    Dest.Assign(bm);
+  finally
+    bm.free;
+  end;
+  sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Image), W, H, (Newsize.cx / W) * 100]);
+end;
+
+procedure TfrmMain.LoadImage(const Image:TFileName);
+var
+  status: MagickBooleanType;
+begin
 
   if Assigned(Currentwand) then
     begin
@@ -169,22 +204,8 @@ begin
 
   Currentwand := NewMagickWand();
 
-  status := MagickReadImage(Currentwand, PChar(Manager[aRow].FullName));
-  H := MagickGetImageHeight(Currentwand);
-  W := MagickGetImageWidth(Currentwand);
-  if (H > imgView.Height) or (W > imgView.Width) then
-    begin
-      _Constraints:= TSize.Create(imgView.Width,imgView.Height);
-      NewSize:=Manager.GetPreviewScaleSize(W, H, _Constraints);
-      MagickResizeImage(Currentwand, NewSize.cx, NewSize.cy, LanczosFilter, 1.0);
-    end
-  else
-    NewSize:= TSize.Create(W, H);
-  bm:= TBitmap.Create;
-  LoadMagickBitmapWand4(CurrentWand, bm);
-  imgView.picture.Assign(bm);
-  bm.free;
-  sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Manager[aRow].FullName), W, H, (Newsize.cx / W) * 100]);
+  status := MagickReadImage(Currentwand, PChar(Image));
+  RenderImage(Image, imgView.Picture);
 
 
 end;

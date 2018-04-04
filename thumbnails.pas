@@ -279,9 +279,6 @@ var
   status: MagickBooleanType;
   Item: TThumbnail;
   size: TSize;
-  Memory: PByte;
-  MemorySize: integer;
-  BlobStream: TBlobStream;
   H,W : integer;
 begin
   Self.Clear;
