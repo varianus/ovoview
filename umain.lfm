@@ -10,17 +10,16 @@ object frmMain: TfrmMain
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
-  LCLVersion = '1.9.0.0'
   object sbBottom: TStatusBar
     Left = 0
-    Height = 21
-    Top = 447
+    Height = 23
+    Top = 445
     Width = 824
     Panels = <>
   end
   object imgView: TImage
     Left = 152
-    Height = 429
+    Height = 407
     Top = 38
     Width = 672
     Align = alClient
@@ -32,7 +31,7 @@ object frmMain: TfrmMain
   end
   object lvThumbnail: TDrawGrid
     Left = 0
-    Height = 429
+    Height = 407
     Top = 38
     Width = 152
     Align = alLeft

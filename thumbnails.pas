@@ -72,8 +72,8 @@ uses
 
 function TThumbnail.GetSize: TSize;
 begin
-  Result.cx:=FImage.Width;
-  Result.cy:=FImage.Height;
+  Result.Width:=FImage.Width;
+  Result.Height:=FImage.Height;
 end;
 
 { TThumbnail }
@@ -106,18 +106,18 @@ function TThumbnailManager.GetPreviewScaleSize(aWidth, aHeight: Integer;
 begin
   if aWidth > aHeight then
     begin
-      Result.cx:= Constraint.cx;
-      Result.cy:= Result.cx * aHeight div aWidth;
-      if Result.cy > Constraint.cy then
+      Result.Width:= Constraint.Width;
+      Result.Height:= Result.Width * aHeight div aWidth;
+      if Result.Height > Constraint.Height then
       begin
-        Result.cy:= Constraint.cy;
-        Result.cx:= Result.cy * aWidth div aHeight;
+        Result.Height:= Constraint.Height;
+        Result.Width:= Result.Height * aWidth div aHeight;
       end;
     end
   else
     begin
-      Result.cy:= Constraint.cy;
-      Result.cx:= Result.cy * aWidth div aHeight;
+      Result.Height:= Constraint.Height;
+      Result.Width:= Result.Height * aWidth div aHeight;
     end;
 end;
 
@@ -299,10 +299,10 @@ begin
       status := MagickReadImage(wand, pchar(intList[i]));
       H := MagickGetImageHeight(wand);
       W := MagickGetImageWidth(wand);
-      if (H > MaxSize.cy) or (W > MaxSize.cx) then
+      if (H > MaxSize.Height) or (W > MaxSize.Width) then
         begin
           Size:=GetPreviewScaleSize(W, H);
-          MagickResizeImage(wand, Size.cx, Size.cy, LanczosFilter, 1.0);
+          MagickResizeImage(wand, Size.Width, Size.Height, LanczosFilter, 1.0);
         end;
       Item:= TThumbnail.Create();
       LoadMagickBitmapWand4(wand, Item.FImage);

@@ -75,7 +75,7 @@ type
 
     procedure GetImageInfo(Wand: PMagickWand; var Results: TStringList);
     procedure LoadImage(const Image: TFileName);
-    procedure RenderImage(const Image: TFileName; Dest: TPicture);
+    procedure RenderImage(const Image: TFileName; Const DestSize:TSize;  Dest: TPicture);
 
   public
     Function LoadPath(Path:TFileName): integer;
@@ -157,7 +157,8 @@ procedure TfrmMain.FormResize(Sender: TObject);
 begin
  //
  pnlCenter.Left:= (tlbTopBar.Width - pnlCenter.Width) div 2;
-
+  if Manager.Count = 0 then exit;
+ RenderImage('zxxxz', TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
 end;
 
 procedure TfrmMain.lvThumbnailDrawCell(Sender: TObject; aCol, aRow: Integer;
@@ -178,30 +179,39 @@ begin
   LoadImage(Manager[aRow].FullName);
 end;
 
-procedure TfrmMain.RenderImage(const Image: TFileName; Dest: TPicture);
+procedure TfrmMain.RenderImage(const Image: TFileName; Const DestSize:TSize;  Dest: TPicture);
 var
   bm:TBitmap;
   H,W: integer;
-  NewSize, _Constraints: TSize;
+  NewSize: TSize;
+  CloneWand: PMagickWand;
 begin
   H := MagickGetImageHeight(Currentwand);
   W := MagickGetImageWidth(Currentwand);
-  if (H > Dest.Height) or (W > Dest.Width) then
+  CloneWand:= nil;
+  if (H > DestSize.Height) or (W > DestSize.Width) then
     begin
-      _Constraints:= TSize.Create(Dest.Width,Dest.Height);
-      NewSize:=Manager.GetPreviewScaleSize(W, H, _Constraints);
-      MagickResizeImage(Currentwand, NewSize.cx, NewSize.cy, LanczosFilter, 1.0);
+      NewSize:=Manager.GetPreviewScaleSize(W, H, DestSize);
+      CloneWand:=CloneMagickWand(Currentwand);
+      MagickResizeImage(CloneWand, NewSize.Width, NewSize.Height, LanczosFilter, 1.0);
     end
   else
     NewSize:= TSize.Create(W, H);
 
   bm:= TBitmap.Create;
   try
-    LoadMagickBitmapWand4(CurrentWand, bm);
+    if not assigned(CloneWand) then
+      LoadMagickBitmapWand4(Currentwand, bm)
+    else
+      LoadMagickBitmapWand4(CloneWand, bm);
     Dest.Assign(bm);
   finally
     bm.free;
   end;
+
+  if assigned(CloneWand) then
+    DestroyMagickWand(CloneWand);
+
   sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Image), W, H, (Newsize.cx / W) * 100]);
 end;
 
@@ -219,7 +229,7 @@ begin
   Currentwand := NewMagickWand();
 
   status := MagickReadImage(Currentwand, PChar(Image));
-  RenderImage(Image, imgView.Picture);
+  RenderImage(Image, TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
 
 
 end;
@@ -251,7 +261,7 @@ begin
   lvThumbnail.RowCount:= Manager.Count;
 
   for I := 0 to Manager.Count -1 do
-    lvThumbnail.RowHeights[i]:= Manager[I].Size.cy + 6;
+    lvThumbnail.RowHeights[i]:= Manager[I].Size.Height + 6;
   result := Manager.Count;
 end;
 
