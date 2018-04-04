@@ -164,7 +164,7 @@ begin
   limg.DataDescription := DataDescription;
 //  limg.DataDescription:= GetDescriptionFromDevice(0, AWidth, AHeight);
 
-     GetExceptionInfo(@ExceptionInfo);
+ //    GetExceptionInfo(@ExceptionInfo);
   try
     for r := 0 to AHeight - 1 do
     begin
