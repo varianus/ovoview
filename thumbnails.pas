@@ -49,12 +49,17 @@ type
 
   end;
 
+  TThumbnailManager = class;
+  TOnLoaThumbnail = procedure (Sender: TThumbnailManager; const Total, Progress: integer) of object;
+
   { TThumbnailManager - class to handle a list of thumbnail }
   TThumbnailManager = class(specialize TFPGObjectList<TThumbnail>)
   private
     FMaxSize: TSize;
     FMaskList: TstringList;
+    FOnLoadThumbnail: TOnLoaThumbnail;
     procedure SetMaxSize(AValue: TSize);
+    procedure SetOnLoadThumbnail(AValue: TOnLoaThumbnail);
   public
     Property MaskList:TSTringList read FMaskList;
     property MaxSize: TSize read FMaxSize write SetMaxSize;
@@ -63,6 +68,7 @@ type
     function GetPreviewScaleSize(aWidth, aHeight: Integer; Constraint: TSize): TSize; overload;
     Constructor Create;
     destructor Destroy; override;
+    Property OnLoadThumbnail: TOnLoaThumbnail read FOnLoadThumbnail write SetOnLoadThumbnail;
   end;
 
 
@@ -271,6 +277,12 @@ begin
   FMaxSize:=AValue;
 end;
 
+procedure TThumbnailManager.SetOnLoadThumbnail(AValue: TOnLoaThumbnail);
+begin
+  if FOnLoadThumbnail=AValue then Exit;
+  FOnLoadThumbnail:=AValue;
+end;
+
 function TThumbnailManager.LoadPath(Path: TFileName): integer;
 var
   intList: TstringList;
@@ -309,6 +321,8 @@ begin
       Item.fInfo := TFileInfoObject(intList.Objects[i]).info;
       Item.FFullName:=intList[i];
       Add(Item);
+      if Assigned(FOnLoadThumbnail) then
+         FOnLoadThumbnail(self, intList.Count, i);
     end;
 
   wand := DestroyMagickWand(wand);

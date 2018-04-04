@@ -53,6 +53,7 @@ type
     MenuItem4: TMenuItem;
     pnlCenter: TPanel;
     sbBottom: TStatusBar;
+    StaticText1: TStaticText;
     tlbTopBar: TPanel;
     ToolButton1: TSpeedButton;
     ToolButton2: TSpeedButton;
@@ -72,11 +73,12 @@ type
     MaskList: TStringList;
     Manager: TThumbnailManager;
     Currentwand: PMagickWand;
+    CurrentImage: string;
 
     procedure GetImageInfo(Wand: PMagickWand; var Results: TStringList);
     procedure LoadImage(const Image: TFileName);
-    procedure RenderImage(const Image: TFileName; Const DestSize:TSize;  Dest: TPicture);
-
+    procedure RenderImage(Const DestSize:TSize;  Dest: TPicture);
+    Procedure UpdateLoadProgress(Sender: TThumbnailManager; const Total, Progress: integer);
   public
     Function LoadPath(Path:TFileName): integer;
   end;
@@ -97,8 +99,9 @@ begin
   Currentwand:=nil;
 
   Manager := TThumbnailManager.Create;
+  Manager.OnLoadThumbnail:=@UpdateLoadProgress;
 
-  Manager.MaxSize := TSize.Create(128,128);
+  Manager.MaxSize := TSize.Create(64,64);
   if ParamCount > 0 then
     begin
       LoadPath(ExtractFilePath(ParamStr(1)));
@@ -158,7 +161,7 @@ begin
  //
  pnlCenter.Left:= (tlbTopBar.Width - pnlCenter.Width) div 2;
   if Manager.Count = 0 then exit;
- RenderImage('zxxxz', TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
+ RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
 end;
 
 procedure TfrmMain.lvThumbnailDrawCell(Sender: TObject; aCol, aRow: Integer;
@@ -179,7 +182,7 @@ begin
   LoadImage(Manager[aRow].FullName);
 end;
 
-procedure TfrmMain.RenderImage(const Image: TFileName; Const DestSize:TSize;  Dest: TPicture);
+procedure TfrmMain.RenderImage(const DestSize: TSize; Dest: TPicture);
 var
   bm:TBitmap;
   H,W: integer;
@@ -212,7 +215,15 @@ begin
   if assigned(CloneWand) then
     DestroyMagickWand(CloneWand);
 
-  sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Image), W, H, (Newsize.cx / W) * 100]);
+  sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(CurrentImage), W, H, (Newsize.cx / W) * 100]);
+end;
+
+procedure TfrmMain.UpdateLoadProgress(Sender: TThumbnailManager; const Total,
+  Progress: integer);
+begin
+  StaticText1.Caption:= format('Loading thumbnails: %d of %d',[Progress,total]);
+  StaticText1.invalidate;
+  Application.ProcessMessages;
 end;
 
 procedure TfrmMain.LoadImage(const Image:TFileName);
@@ -229,12 +240,13 @@ begin
   Currentwand := NewMagickWand();
 
   status := MagickReadImage(Currentwand, PChar(Image));
-  RenderImage(Image, TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
+  CurrentImage:= Image;
+  RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
 
 
 end;
 
-procedure TfrmMain.GetImageInfo(Wand: PMagickWand; Var Results:TStringList);
+procedure TfrmMain.GetImageInfo(Wand: PMagickWand; var Results: TStringList);
 var
 
   i, propNo: cardinal;
