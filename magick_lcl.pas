@@ -5,7 +5,7 @@ unit Magick_LCL;
 interface
 
 uses
-  Classes, SysUtils, Graphics, MagickWand;
+  Classes, SysUtils, Graphics,  MagickWand;
 
 type
   { TBlobStream - helper class to handle arbitrary memory region as a stream }
@@ -23,7 +23,7 @@ procedure LoadMagickBitmapWand4(Wand: PMagickWand; Bmp: TBitmap);
 
 implementation
 
-uses ImageMagick, FPimage, IntfGraphics;
+uses ImageMagick, FPimage, GraphType, IntfGraphics;
 
 procedure RenderGrid(Target: TBitmap; Height, Width: Integer; Size: Integer;
   Color1, Color2: TColor);
@@ -145,6 +145,8 @@ var
   AImage: PImage;
   limg: TLazIntfImage;
   ExceptionInfo: PExceptionInfo;
+  DataDescription: TRawImageDescription;
+  //
 begin
   // We copy ourself to the bitmap in Dest
   AImage := GetImageFromMagickWand(Wand);
@@ -158,10 +160,11 @@ begin
   end;
   AHeight:=MagickGetImageHeight(wand);
   AWidth := MagickGetImageWidth(wand);
+  DataDescription.Init_BPP32_B8G8R8A8_BIO_TTB(AWidth, AHeight);
+  limg.DataDescription := DataDescription;
+//  limg.DataDescription:= GetDescriptionFromDevice(0, AWidth, AHeight);
 
-  limg.DataDescription := GetDescriptionFromDevice(0, AWidth, AHeight);
-
-  //   GetExceptionInfo(@ExceptionInfo);
+     GetExceptionInfo(@ExceptionInfo);
   try
     for r := 0 to AHeight - 1 do
     begin
