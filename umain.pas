@@ -26,8 +26,8 @@ interface
 
 uses
   Classes, SysUtils, types, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, Thumbnails, Magick_LCL, uInfo, MagickWand,
-  ImageMagick, StdCtrls, Grids, ActnList, Buttons;
+  ExtCtrls, FilesSupport, Thumbnails, Magick_LCL, uInfo, MagickWand,
+  ImageMagick, StdCtrls, Grids, ActnList, DBActns, Buttons, Menus, StdActns;
 
 type
 
@@ -35,14 +35,22 @@ type
 
   TfrmMain = class(TForm)
     Action1: TAction;
+    Action2: TAction;
     actShowInfo: TAction;
     actSlideShow: TAction;
     actNext: TAction;
     actPrev: TAction;
     ActionList: TActionList;
+    FileExit1: TFileExit;
+    FileOpen1: TFileOpen;
     ImageList1: TImageList;
     lvThumbnail: TDrawGrid;
     imgView: TImage;
+    MainMenu1: TMainMenu;
+    MenuItem1: TMenuItem;
+    MenuItem2: TMenuItem;
+    MenuItem3: TMenuItem;
+    MenuItem4: TMenuItem;
     pnlCenter: TPanel;
     sbBottom: TStatusBar;
     tlbTopBar: TPanel;
@@ -52,6 +60,7 @@ type
     procedure actNextExecute(Sender: TObject);
     procedure actPrevExecute(Sender: TObject);
     procedure actShowInfoExecute(Sender: TObject);
+    procedure FileOpen1Accept(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
@@ -127,6 +136,11 @@ begin
   finally
     Properties.Free;
   end;
+end;
+
+procedure TfrmMain.FileOpen1Accept(Sender: TObject);
+begin
+  LoadPath(FileOpen1.Dialog.FileName);
 end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
@@ -233,7 +247,7 @@ var
 begin
   lvThumbnail.Clear;
 
-  Manager.LoadPath(Path);
+  Manager.LoadPath(ExtractFilePath(Path));
   lvThumbnail.RowCount:= Manager.Count;
 
   for I := 0 to Manager.Count -1 do
