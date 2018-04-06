@@ -26,7 +26,7 @@ interface
 
 uses
   Classes, SysUtils, types, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, FilesSupport, Thumbnails, Magick_LCL, uInfo, MagickWand,
+  ExtCtrls, FilesSupport, Thumbnails, Magick_LCL, uInfo, MagickWand, LCLIntf,
   ImageMagick, StdCtrls, Grids, ActnList, DBActns, Buttons, Menus, StdActns;
 
 type
@@ -92,8 +92,11 @@ implementation
 
 { TfrmMain }
 
+Const
+  THUMBNAIL_SIZE = 64;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
+
 begin
   ImageMagick.Initialize();
   Currentwand:=nil;
@@ -101,7 +104,9 @@ begin
   Manager := TThumbnailManager.Create;
   Manager.OnLoadThumbnail:=@UpdateLoadProgress;
 
-  Manager.MaxSize := TSize.Create(64,64);
+  Manager.MaxSize := TSize.Create(THUMBNAIL_SIZE,THUMBNAIL_SIZE);
+  lvThumbnail.Width:= THUMBNAIL_SIZE + 2 + GetSystemMetrics(2{SM_CXVSCROLL}) ;
+
   if ParamCount > 0 then
     begin
       LoadPath(ExtractFilePath(ParamStr(1)));
