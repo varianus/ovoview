@@ -761,7 +761,7 @@ begin
   Pointer(MagickGetNumberImages):=GetProcAddress(LibWand, 'MagickGetNumberImages');
 
   {$DEFINE IMPLEMENTATION}
-  {.$include PixelWand.inc}
+  {$include PixelWand.inc}
   {.$include DrawingWand.inc}
   {.$include MagickAttribute.inc}
   {.$include PixelIterator.inc}

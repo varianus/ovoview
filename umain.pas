@@ -20,22 +20,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 unit uMain;
 
-{$mode objfpc}{$H+}
-
+{$mode objfpc}
+{$ModeSwitch advancedrecords}
+{$H+}
 interface
 
 uses
   Classes, SysUtils, types, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, FilesSupport, Thumbnails, Magick_LCL, uInfo, MagickWand, LCLIntf,
-  ImageMagick, StdCtrls, Grids, ActnList, DBActns, Buttons, Menus, StdActns;
+  ExtCtrls, Thumbnails, Magick_LCL, uInfo, MagickWand, LCLIntf,
+  ImageMagick, StdCtrls, Grids, ActnList, Buttons, Menus, StdActns;
 
 type
 
   { TfrmMain }
 
+  RImage = record
+    Wand: PMagickWand;
+    Name: string;
+    Rotation: integer; // degree
+    procedure Clear;
+  end;
+
+
   TfrmMain = class(TForm)
-    Action1: TAction;
-    Action2: TAction;
+    actLeft: TAction;
+    actRight: TAction;
     actShowInfo: TAction;
     actSlideShow: TAction;
     actNext: TAction;
@@ -57,9 +66,13 @@ type
     tlbTopBar: TPanel;
     ToolButton1: TSpeedButton;
     ToolButton2: TSpeedButton;
+    ToolButton3: TSpeedButton;
     ToolButton4: TSpeedButton;
+    ToolButton5: TSpeedButton;
+    procedure actLeftExecute(Sender: TObject);
     procedure actNextExecute(Sender: TObject);
     procedure actPrevExecute(Sender: TObject);
+    procedure actRightExecute(Sender: TObject);
     procedure actShowInfoExecute(Sender: TObject);
     procedure FileOpen1Accept(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -72,9 +85,7 @@ type
   private
     MaskList: TStringList;
     Manager: TThumbnailManager;
-    Currentwand: PMagickWand;
-    CurrentImage: string;
-
+    Current: RImage;
     procedure GetImageInfo(Wand: PMagickWand; var Results: TStringList);
     procedure LoadImage(const Image: TFileName);
     procedure RenderImage(Const DestSize:TSize;  Dest: TPicture);
@@ -95,11 +106,21 @@ implementation
 Const
   THUMBNAIL_SIZE = 64;
 
+{ RImage }
+
+procedure RImage.Clear;
+begin
+  Wand:=nil;
+  Name:='';
+  Rotation:=0;
+
+end;
+
 procedure TfrmMain.FormCreate(Sender: TObject);
 
 begin
   ImageMagick.Initialize();
-  Currentwand:=nil;
+  Current.Clear;
 
   Manager := TThumbnailManager.Create;
   Manager.OnLoadThumbnail:=@UpdateLoadProgress;
@@ -121,12 +142,28 @@ begin
     lvThumbnail.Row:= lvThumbnail.Row + 1;
 end;
 
+procedure TfrmMain.actLeftExecute(Sender: TObject);
+begin
+  Current.Rotation:= Current.Rotation -90;
+  if Current.Rotation = -360 then
+    Current.Rotation:= 0;
+   RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
+end;
+
 procedure TfrmMain.actPrevExecute(Sender: TObject);
 begin
   if lvThumbnail.Row = 0 then
     lvThumbnail.row := lvThumbnail.RowCount - 1
   else
     lvThumbnail.Row:= lvThumbnail.Row - 1;
+end;
+
+procedure TfrmMain.actRightExecute(Sender: TObject);
+begin
+  Current.Rotation:= Current.Rotation +90;
+  if Current.Rotation = 360 then
+    Current.Rotation:= 0;
+  RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
 end;
 
 procedure TfrmMain.actShowInfoExecute(Sender: TObject);
@@ -136,7 +173,7 @@ var
 begin
   Properties := TStringList.Create;
   try
-    GetImageInfo(Currentwand, Properties);
+    GetImageInfo(Current.Wand, Properties);
 
     TheForm := TfrmInfo.Create(Self);
     TheForm.ValueListEditor1.Strings.Assign(Properties);
@@ -153,8 +190,8 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
-  if Assigned(Currentwand) then
-    Currentwand := DestroyMagickWand(Currentwand);
+  if Assigned(Current.Wand) then
+    Current.Wand := DestroyMagickWand(Current.Wand);
 
   MaskList.Free;
   Manager.Free;
@@ -193,14 +230,24 @@ var
   H,W: integer;
   NewSize: TSize;
   CloneWand: PMagickWand;
+  Back: PPixelWand;
 begin
-  H := MagickGetImageHeight(Currentwand);
-  W := MagickGetImageWidth(Currentwand);
-  CloneWand:= nil;
+  CloneWand:=CloneMagickWand(Current.Wand);
+
+  if Current.Rotation <> 0 then
+    begin
+      Back:= NewPixelWand();
+      MagickGetImageBackgroundColor(CloneWand, Back);
+      MagickRotateImage(CloneWand, back, Current.Rotation * 1.0);
+      DestroyPixelWand(back);
+    end;
+
+  H := MagickGetImageHeight(CloneWand);
+  W := MagickGetImageWidth(CloneWand);
+
   if (H > DestSize.Height) or (W > DestSize.Width) then
     begin
       NewSize:=Manager.GetPreviewScaleSize(W, H, DestSize);
-      CloneWand:=CloneMagickWand(Currentwand);
       MagickResizeImage(CloneWand, NewSize.Width, NewSize.Height, LanczosFilter, 1.0);
     end
   else
@@ -208,10 +255,7 @@ begin
 
   bm:= TBitmap.Create;
   try
-    if not assigned(CloneWand) then
-      LoadMagickBitmapWand4(Currentwand, bm)
-    else
-      LoadMagickBitmapWand4(CloneWand, bm);
+    LoadMagickBitmapWand4(CloneWand, bm);
     Dest.Assign(bm);
   finally
     bm.free;
@@ -220,7 +264,7 @@ begin
   if assigned(CloneWand) then
     DestroyMagickWand(CloneWand);
 
-  sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(CurrentImage), W, H, (Newsize.cx / W) * 100]);
+  sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Current.Name), W, H, (Newsize.cx / W) * 100]);
 end;
 
 procedure TfrmMain.UpdateLoadProgress(Sender: TThumbnailManager; const Total,
@@ -236,16 +280,16 @@ var
   status: MagickBooleanType;
 begin
 
-  if Assigned(Currentwand) then
+  if Assigned(Current.Wand) then
     begin
-      Currentwand := DestroyMagickWand(Currentwand);
-      CurrentWand := nil;
+      Current.Wand := DestroyMagickWand(Current.Wand);
+      Current.Clear;
     end;
 
-  Currentwand := NewMagickWand();
+  Current.Wand := NewMagickWand();
 
-  status := MagickReadImage(Currentwand, PChar(Image));
-  CurrentImage:= Image;
+  status := MagickReadImage(Current.Wand, PChar(Image));
+  Current.Name:= Image;
   RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
 
 
