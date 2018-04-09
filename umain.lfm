@@ -4,27 +4,27 @@ object frmMain: TfrmMain
   Top = 250
   Width = 824
   Caption = 'frmMain'
-  ClientHeight = 448
+  ClientHeight = 468
   ClientWidth = 824
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
-  LCLVersion = '1.9.0.0'
   object sbBottom: TStatusBar
     Left = 0
     Height = 23
-    Top = 425
+    Top = 445
     Width = 824
     Panels = <>
   end
   object imgView: TImage
-    Left = 152
-    Height = 387
+    Left = 96
+    Height = 407
     Top = 38
-    Width = 672
+    Width = 728
     Align = alClient
     Center = True
+    OnClick = imgViewClick
     Proportional = True
     StretchOutEnabled = False
     StretchInEnabled = False
@@ -32,12 +32,12 @@ object frmMain: TfrmMain
   end
   object lvThumbnail: TDrawGrid
     Left = 0
-    Height = 387
+    Height = 407
     Top = 38
-    Width = 152
+    Width = 96
     Align = alLeft
     ColCount = 1
-    DefaultColWidth = 128
+    DefaultColWidth = 72
     DefaultRowHeight = 128
     ExtendedSelect = False
     FixedCols = 0
@@ -98,14 +98,6 @@ object frmMain: TfrmMain
         Flat = True
         ShowCaption = False
       end
-    end
-    object StaticText1: TStaticText
-      Left = 0
-      Height = 38
-      Top = 0
-      Width = 224
-      Align = alLeft
-      TabOrder = 1
     end
     object ToolButton3: TSpeedButton
       Left = 744
@@ -178,6 +170,10 @@ object frmMain: TfrmMain
       Category = 'File'
       Caption = '&Uscita'
       Hint = 'Uscita'
+    end
+    object actAbout: TAction
+      Caption = 'About'
+      OnExecute = actAboutExecute
     end
   end
   object ImageList1: TImageList
@@ -1214,6 +1210,12 @@ object frmMain: TfrmMain
       end
       object MenuItem2: TMenuItem
         Action = FileExit1
+      end
+    end
+    object MenuItem5: TMenuItem
+      Caption = 'Help'
+      object MenuItem6: TMenuItem
+        Action = actAbout
       end
     end
   end

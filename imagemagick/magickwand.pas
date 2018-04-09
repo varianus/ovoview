@@ -56,7 +56,7 @@ type
   {$DEFINE INTERFACE}
   {$include PixelWand.inc}      // <- has externals
   {$include DrawingWand.inc}    // <- has externals
-  {.$include MagickAttribute.inc} // <- has externals
+  {$include MagickAttribute.inc} // <- has externals
   {.$include PixelIterator.inc}  // <- has externals
   {$include MagickProperty.inc}
   {$UNDEF INTERFACE}
@@ -763,7 +763,7 @@ begin
   {$DEFINE IMPLEMENTATION}
   {$include PixelWand.inc}
   {.$include DrawingWand.inc}
-  {.$include MagickAttribute.inc}
+  {$include MagickAttribute.inc}
   {.$include PixelIterator.inc}
   {$include MagickProperty.inc}
 

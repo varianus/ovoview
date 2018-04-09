@@ -27,7 +27,7 @@ interface
 
 uses
   Classes, SysUtils, types, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, Thumbnails, Magick_LCL, uInfo, MagickWand, LCLIntf,
+  ExtCtrls, Thumbnails, Magick_LCL, uInfo, uAbout, MagickWand, LCLIntf,
   ImageMagick, StdCtrls, Grids, ActnList, Buttons, Menus, StdActns;
 
 type
@@ -43,6 +43,7 @@ type
 
 
   TfrmMain = class(TForm)
+    actAbout: TAction;
     actLeft: TAction;
     actRight: TAction;
     actShowInfo: TAction;
@@ -60,15 +61,17 @@ type
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
+    MenuItem5: TMenuItem;
+    MenuItem6: TMenuItem;
     pnlCenter: TPanel;
     sbBottom: TStatusBar;
-    StaticText1: TStaticText;
     tlbTopBar: TPanel;
     ToolButton1: TSpeedButton;
     ToolButton2: TSpeedButton;
     ToolButton3: TSpeedButton;
     ToolButton4: TSpeedButton;
     ToolButton5: TSpeedButton;
+    procedure actAboutExecute(Sender: TObject);
     procedure actLeftExecute(Sender: TObject);
     procedure actNextExecute(Sender: TObject);
     procedure actPrevExecute(Sender: TObject);
@@ -78,6 +81,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure imgViewClick(Sender: TObject);
     procedure lvThumbnailDrawCell(Sender: TObject; aCol, aRow: Integer;
       aRect: TRect; aState: TGridDrawState);
     procedure lvThumbnailSelectCell(Sender: TObject; aCol, aRow: Integer;
@@ -150,6 +154,14 @@ begin
    RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
 end;
 
+procedure TfrmMain.actAboutExecute(Sender: TObject);
+var
+  theForm : TfAbout;
+begin
+  theForm:= TfAbout.create(application);
+  theForm.ShowModal;
+end;
+
 procedure TfrmMain.actPrevExecute(Sender: TObject);
 begin
   if lvThumbnail.Row = 0 then
@@ -204,6 +216,11 @@ begin
  pnlCenter.Left:= (tlbTopBar.Width - pnlCenter.Width) div 2;
   if Manager.Count = 0 then exit;
  RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
+end;
+
+procedure TfrmMain.imgViewClick(Sender: TObject);
+begin
+
 end;
 
 procedure TfrmMain.lvThumbnailDrawCell(Sender: TObject; aCol, aRow: Integer;
@@ -270,8 +287,8 @@ end;
 procedure TfrmMain.UpdateLoadProgress(Sender: TThumbnailManager; const Total,
   Progress: integer);
 begin
-  StaticText1.Caption:= format('Loading thumbnails: %d of %d',[Progress,total]);
-  StaticText1.invalidate;
+  sbBottom.SimpleText:= format('Loading thumbnails: %d of %d',[Progress,total]);
+  sbBottom.invalidate;
   Application.ProcessMessages;
 end;
 
@@ -292,12 +309,10 @@ begin
   Current.Name:= Image;
   RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
 
-
 end;
 
 procedure TfrmMain.GetImageInfo(Wand: PMagickWand; var Results: TStringList);
 var
-
   i, propNo: cardinal;
   propList: PPChar;
   propertyValue:Pchar;
