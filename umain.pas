@@ -107,12 +107,6 @@ type
       aRect: TRect; aState: TGridDrawState);
     procedure lvThumbnailSelectCell(Sender: TObject; aCol, aRow: Integer;
       var CanSelect: Boolean);
-    procedure sbScrollAreaMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
-    procedure sbScrollAreaMouseMove(Sender: TObject; Shift: TShiftState; X,
-      Y: Integer);
-    procedure sbScrollAreaMouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure TrackingTimerTimer(Sender: TObject);
   private
     FDragging: Boolean;
@@ -129,7 +123,7 @@ type
     Current: RImage;
     procedure GetImageInfo(Wand: PMagickWand; var Results: TStringList);
     procedure LoadImage(const Image: TFileName);
-    procedure RenderImage(Const DestSize:TSize;  Dest: TPicture);
+    procedure RenderImage(Const VirtualSize:TSize;  Dest: TPicture);
     procedure SetSize(const X, Y: integer);
     Procedure UpdateLoadProgress(Sender: TThumbnailManager; const Total, Progress: integer);
   public
@@ -198,7 +192,7 @@ begin
   Current.Rotation:= Current.Rotation -90;
   if Current.Rotation = -360 then
     Current.Rotation:= 0;
-   RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
+   RenderImage(Current.VirtualSize, imgView.Picture);
 end;
 
 procedure TfrmMain.actAboutExecute(Sender: TObject);
@@ -222,7 +216,7 @@ begin
   Current.Rotation:= Current.Rotation +90;
   if Current.Rotation = 360 then
     Current.Rotation:= 0;
-  RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
+  RenderImage(Current.VirtualSize, imgView.Picture);
 end;
 
 procedure TfrmMain.actShowInfoExecute(Sender: TObject);
@@ -286,7 +280,7 @@ begin
  //
  pnlCenter.Left:= (tlbTopBar.Width - pnlCenter.Width) div 2;
  if Manager.Count = 0 then exit;
- RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
+ RenderImage(Current.VirtualSize, imgView.Picture);
 end;
 
 procedure TfrmMain.imgViewClick(Sender: TObject);
@@ -297,18 +291,27 @@ end;
 procedure TfrmMain.imgViewMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-
+   FDragging := True;
+   FPrevTick := GetTickCount;
+   FPrevImagePos := ImagePos;
+   TrackingTimer.Enabled := True;
+   FStartPos := Point(X - ImgView.Left, Y - ImgView.Top);
+   Screen.Cursor := crHandPoint;
 end;
 
 procedure TfrmMain.imgViewMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 begin
+  if FDragging then
+   ImagePos := Point(X - FStartPos.X, Y - FStartPos.Y);
+
 end;
 
 procedure TfrmMain.imgViewMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-
+  FDragging := False;
+  Screen.Cursor := crDefault;
 end;
 
 procedure TfrmMain.lvThumbnailDrawCell(Sender: TObject; aCol, aRow: Integer;
@@ -329,76 +332,53 @@ begin
   LoadImage(Manager[aRow].FullName);
 end;
 
-procedure TfrmMain.sbScrollAreaMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-
-  //FDragging := True;
-  //sbScrollArea.DoubleBuffered:=true;
-  //FPrevTick := GetTickCount;
-  //FPrevImagePos := ImagePos;
-  //TrackingTimer.Enabled := True;
-  //FStartPos := Point(X - ImgView.Left, Y - ImgView.Top);
-  //Screen.Cursor := crHandPoint;
-end;
-
-procedure TfrmMain.sbScrollAreaMouseMove(Sender: TObject; Shift: TShiftState;
-  X, Y: Integer);
-begin
-  //if FDragging then
-  //  ImagePos := Point(X - FStartPos.X, Y - FStartPos.Y);
-
-end;
-
 function TfrmMain.GetImagePos: TPoint;
 begin
-  //with sbScrollArea do
-  //    Result := Point(HorzScrollBar.Position, VertScrollBar.Position);
+  Result := Current.Offset;
 end;
 
 procedure TfrmMain.SetImagePos(Value: TPoint);
 begin
-  //sbScrollArea.HorzScrollBar.Position := Value.X;
-  //sbScrollArea.VertScrollBar.Position := Value.Y;
+  Current.Offset := Value;
+  if Current.Offset.x < 0 then
+     Current.Offset.x := 0;
+
+  if Current.Offset.y < 0 then
+     Current.Offset.y := 0;
+
+  RenderImage(Current.VirtualSize, imgView.Picture);
+  imgView.Invalidate;
 end;
 
 procedure TfrmMain.TrackingTimerTimer(Sender: TObject);
 var
   Delay: Cardinal;
 begin
-  //Delay := GetTickCount - FPrevTick;
-  //if FDragging then
-  //begin
-  //  if Delay = 0 then
-  //    Delay := 1;
-  //  FSpeedX := (ImagePos.X - FPrevImagePos.X) / Delay;
-  //  FSpeedY := (ImagePos.Y - FPrevImagePos.Y) / Delay;
-  //end
-  //else
-  //begin
-  //  if (Abs(FSpeedX) < 0.005) and (Abs(FSpeedY) < 0.005) then
-  //    TrackingTimer.Enabled := False
-  //  else
-  //  begin
-  //    ImagePos := Point(FPrevImagePos.X + Round(Delay * FSpeedX),
-  //      FPrevImagePos.Y + Round(Delay * FSpeedY));
-  //    FSpeedX := 0.83 * FSpeedX;
-  //    FSpeedY := 0.83 * FSpeedY;
-  //  end;
-  //end;
-  //FPrevImagePos := ImagePos;
-  //FPrevTick := GetTickCount;
+  Delay := GetTickCount - FPrevTick;
+  if FDragging then
+  begin
+    if Delay = 0 then
+      Delay := 1;
+    FSpeedX := (ImagePos.X - FPrevImagePos.X) / Delay;
+    FSpeedY := (ImagePos.Y - FPrevImagePos.Y) / Delay;
+  end
+  else
+  begin
+    if (Abs(FSpeedX) < 0.005) and (Abs(FSpeedY) < 0.005) then
+      TrackingTimer.Enabled := False
+    else
+    begin
+      ImagePos := Point(FPrevImagePos.X + Round(Delay * FSpeedX),
+        FPrevImagePos.Y + Round(Delay * FSpeedY));
+      FSpeedX := 0.83 * FSpeedX;
+      FSpeedY := 0.83 * FSpeedY;
+    end;
+  end;
+  FPrevImagePos := ImagePos;
+  FPrevTick := GetTickCount;
 end;
 
-
-procedure TfrmMain.sbScrollAreaMouseUp(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
-begin
-  //FDragging := False;
-  //Screen.Cursor := crDefault;
-end;
-
-procedure TfrmMain.RenderImage(const DestSize: TSize; Dest: TPicture);
+procedure TfrmMain.RenderImage(const VirtualSize: TSize; Dest: TPicture);
 var
   bm:TBitmap;
   H,W: integer;
@@ -422,9 +402,9 @@ begin
   case Current.ViewMode of
     vmAdapt:
       begin
-      if (H > DestSize.Height) or (W > DestSize.Width) then
+      if (H > VirtualSize.Height) or (W > VirtualSize.Width) then
         begin
-          NewSize:=Manager.GetPreviewScaleSize(W, H, DestSize);
+          NewSize:=Manager.GetPreviewScaleSize(W, H, VirtualSize);
           MagickResizeImage(CloneWand, NewSize.Width, NewSize.Height, LanczosFilter, 1.0);
         end
       else
@@ -432,14 +412,19 @@ begin
       end;
     vmZoom:
       begin
-         MagickResizeImage(CloneWand, DestSize.Width, DestSize.Height, MitchellFilter, 1.0);
-         NewSize:= TSize.Create(DestSize.Width, DestSize.Height);
+         MagickResizeImage(CloneWand, VirtualSize.Width, VirtualSize.Height, MitchellFilter, 1.0);
+         if (VirtualSize.Height > imgView.Height) or (VirtualSize.Width > imgView.Width) then
+           begin
+              NewSize:= TSize.Create(imgView.Width, imgView.Height);
+           end
+         else
+           NewSize:= TSize.Create(VirtualSize.Width, VirtualSize.Height)
       end;
     else
       NewSize:= TSize.Create(W, H);
   end;
 
-   bm:= TBitmap.Create;
+  bm:= TBitmap.Create;
   try
     LoadMagickBitmapWand4(CloneWand, bm, NewSize, Current.Offset);
     Dest.Assign(bm);
