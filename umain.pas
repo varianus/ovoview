@@ -33,17 +33,26 @@ uses
 type
 
   { TfrmMain }
+  TViewMode = (vmAdapt, vmZoom, vmReal);
 
   RImage = record
     Wand: PMagickWand;
     Name: string;
     Rotation: integer; // degree
+    ZoomRatio: double;
+    ViewMode: TViewMode;
+    Offset:TPoint;
+    VirtualSize:TSize;
+    RealSize:TSize;
     procedure Clear;
   end;
 
 
   TfrmMain = class(TForm)
     actAbout: TAction;
+    actZoomReset: TAction;
+    actZoomIn: TAction;
+    actZoomOut: TAction;
     actLeft: TAction;
     actRight: TAction;
     actShowInfo: TAction;
@@ -54,8 +63,8 @@ type
     FileExit1: TFileExit;
     FileOpen1: TFileOpen;
     ImageList1: TImageList;
-    lvThumbnail: TDrawGrid;
     imgView: TImage;
+    lvThumbnail: TDrawGrid;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
@@ -65,27 +74,55 @@ type
     MenuItem6: TMenuItem;
     pnlCenter: TPanel;
     sbBottom: TStatusBar;
+    TrackingTimer: TTimer;
     tlbTopBar: TPanel;
     ToolButton1: TSpeedButton;
     ToolButton2: TSpeedButton;
     ToolButton3: TSpeedButton;
     ToolButton4: TSpeedButton;
     ToolButton5: TSpeedButton;
+    ToolButton6: TSpeedButton;
+    ToolButton7: TSpeedButton;
     procedure actAboutExecute(Sender: TObject);
     procedure actLeftExecute(Sender: TObject);
     procedure actNextExecute(Sender: TObject);
     procedure actPrevExecute(Sender: TObject);
     procedure actRightExecute(Sender: TObject);
     procedure actShowInfoExecute(Sender: TObject);
+    procedure actZoomInExecute(Sender: TObject);
+    procedure actZoomOutExecute(Sender: TObject);
+    procedure actZoomResetExecute(Sender: TObject);
     procedure FileOpen1Accept(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure imgViewClick(Sender: TObject);
+    procedure imgViewMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure imgViewMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure imgViewMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure lvThumbnailDrawCell(Sender: TObject; aCol, aRow: Integer;
       aRect: TRect; aState: TGridDrawState);
     procedure lvThumbnailSelectCell(Sender: TObject; aCol, aRow: Integer;
       var CanSelect: Boolean);
+    procedure sbScrollAreaMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure sbScrollAreaMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure sbScrollAreaMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure TrackingTimerTimer(Sender: TObject);
+  private
+    FDragging: Boolean;
+    FPrevImagePos: TPoint;
+    FPrevTick: Cardinal;
+    FSpeedX: Single;
+    FSpeedY: Single;
+    FStartPos: TPoint;
+    function GetImagePos: TPoint;
+    procedure SetImagePos(Value: TPoint);
   private
     MaskList: TStringList;
     Manager: TThumbnailManager;
@@ -93,15 +130,19 @@ type
     procedure GetImageInfo(Wand: PMagickWand; var Results: TStringList);
     procedure LoadImage(const Image: TFileName);
     procedure RenderImage(Const DestSize:TSize;  Dest: TPicture);
+    procedure SetSize(const X, Y: integer);
     Procedure UpdateLoadProgress(Sender: TThumbnailManager; const Total, Progress: integer);
   public
     Function LoadPath(Path:TFileName): integer;
+  public
+      property ImagePos: TPoint read GetImagePos write SetImagePos;
   end;
 
 var
   frmMain: TfrmMain;
 
 implementation
+uses math;
 
 {$R *.lfm}
 
@@ -109,6 +150,7 @@ implementation
 
 Const
   THUMBNAIL_SIZE = 64;
+  ZoomRatio = 1.5;
 
 { RImage }
 
@@ -117,6 +159,11 @@ begin
   Wand:=nil;
   Name:='';
   Rotation:=0;
+  ZoomRatio:=1.0;
+  ViewMode:= vmAdapt;
+  Offset:= Point(0,0);
+  RealSize := TSize.Create(0,0);
+  VirtualSize := TSize.Create(0,0);
 
 end;
 
@@ -195,6 +242,30 @@ begin
   end;
 end;
 
+procedure TfrmMain.SetSize(Const X,Y:integer);
+begin
+  Current.VirtualSize := TSize.Create(X,Y);
+  RenderImage(Current.VirtualSize, imgView.Picture);
+end;
+
+procedure TfrmMain.actZoomInExecute(Sender: TObject);
+begin
+  Current.ViewMode:=vmZoom;
+  SetSize(round(Current.VirtualSize.Width * zoomRatio),round(Current.VirtualSize.Height * zoomRatio));
+end;
+
+procedure TfrmMain.actZoomOutExecute(Sender: TObject);
+begin
+  Current.ViewMode:=vmZoom;
+  SetSize(round(Current.VirtualSize.Width * (1/zoomRatio)), round(Current.VirtualSize.Height * (1/zoomRatio)));
+end;
+
+procedure TfrmMain.actZoomResetExecute(Sender: TObject);
+begin
+  Current.ViewMode:=vmAdapt;
+  SetSize(Current.RealSize.Width, Current.RealSize.Width);
+end;
+
 procedure TfrmMain.FileOpen1Accept(Sender: TObject);
 begin
   LoadPath(FileOpen1.Dialog.FileName);
@@ -214,11 +285,28 @@ procedure TfrmMain.FormResize(Sender: TObject);
 begin
  //
  pnlCenter.Left:= (tlbTopBar.Width - pnlCenter.Width) div 2;
-  if Manager.Count = 0 then exit;
+ if Manager.Count = 0 then exit;
  RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
 end;
 
 procedure TfrmMain.imgViewClick(Sender: TObject);
+begin
+
+end;
+
+procedure TfrmMain.imgViewMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+
+end;
+
+procedure TfrmMain.imgViewMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+begin
+end;
+
+procedure TfrmMain.imgViewMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
 begin
 
 end;
@@ -239,6 +327,75 @@ begin
   if Manager.Count = 0 then exit;
 
   LoadImage(Manager[aRow].FullName);
+end;
+
+procedure TfrmMain.sbScrollAreaMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+
+  //FDragging := True;
+  //sbScrollArea.DoubleBuffered:=true;
+  //FPrevTick := GetTickCount;
+  //FPrevImagePos := ImagePos;
+  //TrackingTimer.Enabled := True;
+  //FStartPos := Point(X - ImgView.Left, Y - ImgView.Top);
+  //Screen.Cursor := crHandPoint;
+end;
+
+procedure TfrmMain.sbScrollAreaMouseMove(Sender: TObject; Shift: TShiftState;
+  X, Y: Integer);
+begin
+  //if FDragging then
+  //  ImagePos := Point(X - FStartPos.X, Y - FStartPos.Y);
+
+end;
+
+function TfrmMain.GetImagePos: TPoint;
+begin
+  //with sbScrollArea do
+  //    Result := Point(HorzScrollBar.Position, VertScrollBar.Position);
+end;
+
+procedure TfrmMain.SetImagePos(Value: TPoint);
+begin
+  //sbScrollArea.HorzScrollBar.Position := Value.X;
+  //sbScrollArea.VertScrollBar.Position := Value.Y;
+end;
+
+procedure TfrmMain.TrackingTimerTimer(Sender: TObject);
+var
+  Delay: Cardinal;
+begin
+  //Delay := GetTickCount - FPrevTick;
+  //if FDragging then
+  //begin
+  //  if Delay = 0 then
+  //    Delay := 1;
+  //  FSpeedX := (ImagePos.X - FPrevImagePos.X) / Delay;
+  //  FSpeedY := (ImagePos.Y - FPrevImagePos.Y) / Delay;
+  //end
+  //else
+  //begin
+  //  if (Abs(FSpeedX) < 0.005) and (Abs(FSpeedY) < 0.005) then
+  //    TrackingTimer.Enabled := False
+  //  else
+  //  begin
+  //    ImagePos := Point(FPrevImagePos.X + Round(Delay * FSpeedX),
+  //      FPrevImagePos.Y + Round(Delay * FSpeedY));
+  //    FSpeedX := 0.83 * FSpeedX;
+  //    FSpeedY := 0.83 * FSpeedY;
+  //  end;
+  //end;
+  //FPrevImagePos := ImagePos;
+  //FPrevTick := GetTickCount;
+end;
+
+
+procedure TfrmMain.sbScrollAreaMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  //FDragging := False;
+  //Screen.Cursor := crDefault;
 end;
 
 procedure TfrmMain.RenderImage(const DestSize: TSize; Dest: TPicture);
@@ -262,17 +419,29 @@ begin
   H := MagickGetImageHeight(CloneWand);
   W := MagickGetImageWidth(CloneWand);
 
-  if (H > DestSize.Height) or (W > DestSize.Width) then
-    begin
-      NewSize:=Manager.GetPreviewScaleSize(W, H, DestSize);
-      MagickResizeImage(CloneWand, NewSize.Width, NewSize.Height, LanczosFilter, 1.0);
-    end
-  else
-    NewSize:= TSize.Create(W, H);
+  case Current.ViewMode of
+    vmAdapt:
+      begin
+      if (H > DestSize.Height) or (W > DestSize.Width) then
+        begin
+          NewSize:=Manager.GetPreviewScaleSize(W, H, DestSize);
+          MagickResizeImage(CloneWand, NewSize.Width, NewSize.Height, LanczosFilter, 1.0);
+        end
+      else
+        NewSize:= TSize.Create(W, H);
+      end;
+    vmZoom:
+      begin
+         MagickResizeImage(CloneWand, DestSize.Width, DestSize.Height, MitchellFilter, 1.0);
+         NewSize:= TSize.Create(DestSize.Width, DestSize.Height);
+      end;
+    else
+      NewSize:= TSize.Create(W, H);
+  end;
 
-  bm:= TBitmap.Create;
+   bm:= TBitmap.Create;
   try
-    LoadMagickBitmapWand4(CloneWand, bm);
+    LoadMagickBitmapWand4(CloneWand, bm, NewSize, Current.Offset);
     Dest.Assign(bm);
   finally
     bm.free;
@@ -300,13 +469,16 @@ begin
   if Assigned(Current.Wand) then
     begin
       Current.Wand := DestroyMagickWand(Current.Wand);
-      Current.Clear;
     end;
 
+  Current.Clear;
   Current.Wand := NewMagickWand();
 
   status := MagickReadImage(Current.Wand, PChar(Image));
   Current.Name:= Image;
+  Current.RealSize:= Tsize.create( MagickGetImageWidth(Current.Wand), MagickGetImageHeight(Current.Wand));
+  Current.VirtualSize := Current.RealSize;
+  Current.ViewMode:= vmAdapt;
   RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
 
 end;
@@ -340,6 +512,11 @@ begin
     lvThumbnail.RowHeights[i]:= Manager[I].Size.Height + 6;
   result := Manager.Count;
 end;
+{
+
+
+ StatusBar1.SimpleText:= format('%d x %d (%d%%)',[ImageCover.Picture.Width, ImageCover.Picture.Height,trunc((imageWidth/ImageCover.Picture.Width ) * 100)]);
+}
 
 end.
 

@@ -315,9 +315,12 @@ begin
         begin
           Size:=GetPreviewScaleSize(W, H);
           MagickResizeImage(wand, Size.Width, Size.Height, LanczosFilter, 1.0);
-        end;
+        end
+      else
+        Size:= TSize.Create(W,H);
+
       Item:= TThumbnail.Create();
-      LoadMagickBitmapWand4(wand, Item.FImage);
+      LoadMagickBitmapWand4(wand, Item.FImage, Size, point(0,0));
       Item.fInfo := TFileInfoObject(intList.Objects[i]).info;
       Item.FFullName:=intList[i];
       Add(Item);

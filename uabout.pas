@@ -74,12 +74,6 @@ begin
   lbBuildEnv.Caption   := format (rBuildEnv,[lazVersion, fpcVersion]);
   lbEngine.Caption     := format (rCurrentEngine, [String(MagickGetVersion(nil))]);
 
-  //for i := 0 to ComponentCount -1 do
-  //   if Components[i] is TLabel then
-  //     if Tlabel (Components[i]).OptimalFill then
-  //        Tlabel (Components[i]).AdjustFontForOptimalFill;
-  //
-
 end;
 
 procedure TfAbout.lHomePageMouseDown(Sender: TObject; Button: TMouseButton;

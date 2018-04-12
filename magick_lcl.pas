@@ -5,7 +5,7 @@ unit Magick_LCL;
 interface
 
 uses
-  Classes, SysUtils, Graphics,  MagickWand;
+  Classes, SysUtils, Graphics,  MagickWand, types;
 
 type
   { TBlobStream - helper class to handle arbitrary memory region as a stream }
@@ -18,7 +18,7 @@ type
 procedure LoadMagickBitmapWand1(Wand: PMagickWand; Bmp: TBitmap);
 procedure LoadMagickBitmapWand2(Wand: PMagickWand; Bmp: TBitmap);
 procedure LoadMagickBitmapWand3(Wand: PMagickWand; Bmp: TBitmap);
-procedure LoadMagickBitmapWand4(Wand: PMagickWand; Bmp: TBitmap);
+procedure LoadMagickBitmapWand4(Wand: PMagickWand; Bmp: TBitmap; Size:TSize; Offset:TPoint);
 
 
 implementation
@@ -139,9 +139,9 @@ begin
   exit;
 end;
 
-procedure LoadMagickBitmapWand4(Wand: PMagickWand; Bmp: TBitmap);
+procedure LoadMagickBitmapWand4(Wand: PMagickWand; Bmp: TBitmap; Size:TSize; Offset:TPoint);
 var
-  r, AHeight, AWidth: integer;
+  r: integer;
   AImage: PImage;
   limg: TLazIntfImage;
   ExceptionInfo: PExceptionInfo;
@@ -158,17 +158,14 @@ begin
     Bmp.Height := 0;
     exit;
   end;
-  AHeight:=MagickGetImageHeight(wand);
-  AWidth := MagickGetImageWidth(wand);
-  DataDescription.Init_BPP32_B8G8R8A8_BIO_TTB(AWidth, AHeight);
+  DataDescription.Init_BPP32_B8G8R8A8_BIO_TTB( Size.Width, Size.Height);
   limg.DataDescription := DataDescription;
-//  limg.DataDescription:= GetDescriptionFromDevice(0, AWidth, AHeight);
 
  //    GetExceptionInfo(@ExceptionInfo);
   try
-    for r := 0 to AHeight - 1 do
+    for r := 0 to Size.Height - 1 do
     begin
-      ExportImagePixels(AImage, 0, r, AWidth, 1, 'BGRA', CharPixel, limg.GetDataLineStart(r), @ExceptionInfo);
+      ExportImagePixels(AImage, 0+Offset.x, r+Offset.y, Size.Width, 1, 'BGRA', CharPixel, limg.GetDataLineStart(r), @ExceptionInfo);
       //        ProcessExceptions(ExceptionInfo);
     end;
   finally
