@@ -36,7 +36,8 @@ type
   TViewMode = (vmAdapt, vmZoom, vmReal);
 
   RImage = record
-    Wand: PMagickWand;
+    OriginalWand: PMagickWand;
+    ModWand: PMagickWand;
     Name: string;
     Rotation: integer; // degree
     ZoomRatio: double;
@@ -96,7 +97,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormResize(Sender: TObject);
-    procedure imgViewClick(Sender: TObject);
     procedure imgViewMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure imgViewMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -116,6 +116,7 @@ type
     FSpeedY: Single;
     FStartPos: TPoint;
     function GetImagePos: TPoint;
+    procedure PaintImage(Dest: TPicture; BitmapSize: TSize);
     procedure SetImagePos(Value: TPoint);
   private
     MaskList: TStringList;
@@ -123,7 +124,7 @@ type
     Current: RImage;
     procedure GetImageInfo(Wand: PMagickWand; var Results: TStringList);
     procedure LoadImage(const Image: TFileName);
-    procedure RenderImage(Const VirtualSize:TSize;  Dest: TPicture);
+    procedure RenderImage(Const VirtualSize:TSize);
     procedure SetSize(const X, Y: integer);
     Procedure UpdateLoadProgress(Sender: TThumbnailManager; const Total, Progress: integer);
   public
@@ -150,7 +151,8 @@ Const
 
 procedure RImage.Clear;
 begin
-  Wand:=nil;
+  OriginalWand:=nil;
+  ModWand:= nil;
   Name:='';
   Rotation:=0;
   ZoomRatio:=1.0;
@@ -192,7 +194,7 @@ begin
   Current.Rotation:= Current.Rotation -90;
   if Current.Rotation = -360 then
     Current.Rotation:= 0;
-   RenderImage(Current.VirtualSize, imgView.Picture);
+   RenderImage(Current.VirtualSize);
 end;
 
 procedure TfrmMain.actAboutExecute(Sender: TObject);
@@ -216,7 +218,7 @@ begin
   Current.Rotation:= Current.Rotation +90;
   if Current.Rotation = 360 then
     Current.Rotation:= 0;
-  RenderImage(Current.VirtualSize, imgView.Picture);
+  RenderImage(Current.VirtualSize);
 end;
 
 procedure TfrmMain.actShowInfoExecute(Sender: TObject);
@@ -226,7 +228,7 @@ var
 begin
   Properties := TStringList.Create;
   try
-    GetImageInfo(Current.Wand, Properties);
+    GetImageInfo(Current.OriginalWand, Properties);
 
     TheForm := TfrmInfo.Create(Self);
     TheForm.ValueListEditor1.Strings.Assign(Properties);
@@ -239,7 +241,7 @@ end;
 procedure TfrmMain.SetSize(Const X,Y:integer);
 begin
   Current.VirtualSize := TSize.Create(X,Y);
-  RenderImage(Current.VirtualSize, imgView.Picture);
+  RenderImage(Current.VirtualSize);
 end;
 
 procedure TfrmMain.actZoomInExecute(Sender: TObject);
@@ -267,8 +269,8 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
-  if Assigned(Current.Wand) then
-    Current.Wand := DestroyMagickWand(Current.Wand);
+  if Assigned(Current.OriginalWand) then
+    Current.OriginalWand := DestroyMagickWand(Current.OriginalWand);
 
   MaskList.Free;
   Manager.Free;
@@ -280,12 +282,7 @@ begin
  //
  pnlCenter.Left:= (tlbTopBar.Width - pnlCenter.Width) div 2;
  if Manager.Count = 0 then exit;
- RenderImage(Current.VirtualSize, imgView.Picture);
-end;
-
-procedure TfrmMain.imgViewClick(Sender: TObject);
-begin
-
+ RenderImage(Current.VirtualSize);
 end;
 
 procedure TfrmMain.imgViewMouseDown(Sender: TObject; Button: TMouseButton;
@@ -303,7 +300,7 @@ procedure TfrmMain.imgViewMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 begin
   if FDragging then
-   ImagePos := Point(X - FStartPos.X, Y - FStartPos.Y);
+   ImagePos := Point(FStartPos.X - X , FStartPos.Y - Y );
 
 end;
 
@@ -346,7 +343,13 @@ begin
   if Current.Offset.y < 0 then
      Current.Offset.y := 0;
 
-  RenderImage(Current.VirtualSize, imgView.Picture);
+  if (Current.Offset.x + imgView.Width) > Current.VirtualSize.Width then
+    Current.Offset.x := Current.VirtualSize.Width - imgView.Width;
+
+  if (Current.Offset.y + imgView.Height) > Current.VirtualSize.Height then
+    Current.Offset.y := Current.VirtualSize.Height - imgView.Height;
+
+  PaintImage(imgView.Picture, TSize.Create(imgView.Width, imgView.Height));
   imgView.Invalidate;
 end;
 
@@ -365,7 +368,7 @@ begin
   else
   begin
     if (Abs(FSpeedX) < 0.005) and (Abs(FSpeedY) < 0.005) then
-      TrackingTimer.Enabled := False
+   //   TrackingTimer.Enabled := False
     else
     begin
       ImagePos := Point(FPrevImagePos.X + Round(Delay * FSpeedX),
@@ -378,26 +381,42 @@ begin
   FPrevTick := GetTickCount;
 end;
 
-procedure TfrmMain.RenderImage(const VirtualSize: TSize; Dest: TPicture);
+Procedure TfrmMain.PaintImage(Dest: TPicture; BitmapSize: TSize);
 var
   bm:TBitmap;
+begin
+  bm:= TBitmap.Create;
+ // bm.BeginUpdate();
+  try
+    LoadMagickBitmapWand4(Current.ModWand, bm, BitmapSize, Current.Offset);
+    Dest.Assign(bm);
+  finally
+   // bm.EndUpdate();
+    bm.free;
+  end;
+end;
+
+procedure TfrmMain.RenderImage(const VirtualSize: TSize);
+var
   H,W: integer;
   NewSize: TSize;
-  CloneWand: PMagickWand;
   Back: PPixelWand;
 begin
-  CloneWand:=CloneMagickWand(Current.Wand);
+  If Assigned(Current.ModWand) then
+    DestroyMagickWand(Current.ModWand);
+
+  Current.ModWand:=CloneMagickWand(Current.OriginalWand);
 
   if Current.Rotation <> 0 then
     begin
       Back:= NewPixelWand();
-      MagickGetImageBackgroundColor(CloneWand, Back);
-      MagickRotateImage(CloneWand, back, Current.Rotation * 1.0);
+      MagickGetImageBackgroundColor(Current.ModWand, Back);
+      MagickRotateImage(Current.ModWand, back, Current.Rotation * 1.0);
       DestroyPixelWand(back);
     end;
 
-  H := MagickGetImageHeight(CloneWand);
-  W := MagickGetImageWidth(CloneWand);
+  H := MagickGetImageHeight(Current.ModWand);
+  W := MagickGetImageWidth(Current.ModWand);
 
   case Current.ViewMode of
     vmAdapt:
@@ -405,14 +424,14 @@ begin
       if (H > VirtualSize.Height) or (W > VirtualSize.Width) then
         begin
           NewSize:=Manager.GetPreviewScaleSize(W, H, VirtualSize);
-          MagickResizeImage(CloneWand, NewSize.Width, NewSize.Height, LanczosFilter, 1.0);
+          MagickResizeImage(Current.ModWand, NewSize.Width, NewSize.Height, LanczosFilter, 1.0);
         end
       else
         NewSize:= TSize.Create(W, H);
       end;
     vmZoom:
       begin
-         MagickResizeImage(CloneWand, VirtualSize.Width, VirtualSize.Height, MitchellFilter, 1.0);
+         MagickResizeImage(Current.ModWand, VirtualSize.Width, VirtualSize.Height, MitchellFilter, 1.0);
          if (VirtualSize.Height > imgView.Height) or (VirtualSize.Width > imgView.Width) then
            begin
               NewSize:= TSize.Create(imgView.Width, imgView.Height);
@@ -423,18 +442,11 @@ begin
     else
       NewSize:= TSize.Create(W, H);
   end;
+  writeln('Virtual ', VirtualSize.Width, ' ', VirtualSize.Height);
+  writeln('imgview ', imgview.Width, ' ', imgview.Height);
+  writeln('NewSize ', NewSize.Width, ' ', NewSize.Height);
 
-  bm:= TBitmap.Create;
-  try
-    LoadMagickBitmapWand4(CloneWand, bm, NewSize, Current.Offset);
-    Dest.Assign(bm);
-  finally
-    bm.free;
-  end;
-
-  if assigned(CloneWand) then
-    DestroyMagickWand(CloneWand);
-
+  PaintImage(imgView.Picture, NewSize);
   sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Current.Name), W, H, (Newsize.cx / W) * 100]);
 end;
 
@@ -451,20 +463,20 @@ var
   status: MagickBooleanType;
 begin
 
-  if Assigned(Current.Wand) then
+  if Assigned(Current.OriginalWand) then
     begin
-      Current.Wand := DestroyMagickWand(Current.Wand);
+      Current.OriginalWand := DestroyMagickWand(Current.OriginalWand);
     end;
 
   Current.Clear;
-  Current.Wand := NewMagickWand();
+  Current.OriginalWand := NewMagickWand();
 
-  status := MagickReadImage(Current.Wand, PChar(Image));
+  status := MagickReadImage(Current.OriginalWand, PChar(Image));
   Current.Name:= Image;
-  Current.RealSize:= Tsize.create( MagickGetImageWidth(Current.Wand), MagickGetImageHeight(Current.Wand));
+  Current.RealSize:= Tsize.create( MagickGetImageWidth(Current.OriginalWand), MagickGetImageHeight(Current.OriginalWand));
   Current.VirtualSize := Current.RealSize;
   Current.ViewMode:= vmAdapt;
-  RenderImage(TSize.Create(imgView.Width, imgView.Height), imgView.Picture);
+  RenderImage(TSize.Create(imgView.Width, imgView.Height));
 
 end;
 
