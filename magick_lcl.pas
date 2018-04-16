@@ -161,10 +161,11 @@ begin
   DataDescription.Init_BPP32_B8G8R8A8_BIO_TTB( Size.Width, Size.Height);
   limg.DataDescription := DataDescription;
 
-  writeln('wand     W:',MagickGetImageWidth(wand), ' H:',MagickGetImageHeight(wand));
-  writeln('viewport W:',Size.Width, ' H:',Size.Height);
-  writeln('offset   x:',offset.x,   ' y:',offset.y);
+  //writeln('wand     W:',MagickGetImageWidth(wand), ' H:',MagickGetImageHeight(wand));
+  //writeln('viewport W:',Size.Width, ' H:',Size.Height);
+  //writeln('offset   x:',offset.x,   ' y:',offset.y);
  //    GetExceptionInfo(@ExceptionInfo);
+
   try
     for r := 0 to Size.Height - 1 do
     begin
