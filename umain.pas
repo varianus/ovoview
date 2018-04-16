@@ -45,6 +45,7 @@ type
     Offset:TPoint;
     VirtualSize:TSize;
     RealSize:TSize;
+    IntBitmap: TBitmap;
     procedure Clear;
   end;
 
@@ -64,7 +65,7 @@ type
     FileExit1: TFileExit;
     FileOpen1: TFileOpen;
     ImageList1: TImageList;
-    imgView: TImage;
+    imgView: TPaintBox;
     lvThumbnail: TDrawGrid;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
@@ -73,6 +74,7 @@ type
     MenuItem4: TMenuItem;
     MenuItem5: TMenuItem;
     MenuItem6: TMenuItem;
+    Panel1: TPanel;
     pnlCenter: TPanel;
     sbBottom: TStatusBar;
     TrackingTimer: TTimer;
@@ -103,6 +105,7 @@ type
       Y: Integer);
     procedure imgViewMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure imgViewPaint(Sender: TObject);
     procedure lvThumbnailDrawCell(Sender: TObject; aCol, aRow: Integer;
       aRect: TRect; aState: TGridDrawState);
     procedure lvThumbnailSelectCell(Sender: TObject; aCol, aRow: Integer;
@@ -116,7 +119,7 @@ type
     FSpeedY: Single;
     FStartPos: TPoint;
     function GetImagePos: TPoint;
-    procedure PaintImage(Dest: TPicture; BitmapSize: TSize);
+    procedure PaintImage(BitmapSize: TSize);
     procedure SetImagePos(Value: TPoint);
   private
     MaskList: TStringList;
@@ -292,7 +295,7 @@ begin
    FPrevTick := GetTickCount;
    FPrevImagePos := ImagePos;
    TrackingTimer.Enabled := True;
-   FStartPos := Point(X - ImgView.Left, Y - ImgView.Top);
+   FStartPos := Point(X - ImgView.Left + Current.offset.X, Y - ImgView.Top + Current.offset.Y);
    Screen.Cursor := crHandPoint;
 end;
 
@@ -309,6 +312,26 @@ procedure TfrmMain.imgViewMouseUp(Sender: TObject; Button: TMouseButton;
 begin
   FDragging := False;
   Screen.Cursor := crDefault;
+end;
+
+procedure TfrmMain.imgViewPaint(Sender: TObject);
+begin
+ imgView.Canvas.Lock;
+ imgView.Canvas.Brush.Style := bsClear;
+ imgView.Canvas.FillRect(imgView.ClientRect);
+
+ if Current.IntBitmap <> nil then
+  begin
+   if (imgView.Width > Current.IntBitmap.Width) or
+      (imgView.Height > Current.IntBitmap.Height)  then
+     imgView.Canvas.Draw((imgView.Width - Current.IntBitmap.Width) div 2,
+                     (imgView.Height - Current.IntBitmap.Height) div 2,
+                     Current.IntBitmap)
+   else
+     imgView.Canvas.Draw(0,0,Current.IntBitmap)
+
+  end;
+ imgView.Canvas.Unlock;
 end;
 
 procedure TfrmMain.lvThumbnailDrawCell(Sender: TObject; aCol, aRow: Integer;
@@ -337,6 +360,7 @@ end;
 procedure TfrmMain.SetImagePos(Value: TPoint);
 begin
   Current.Offset := Value;
+  writeln (format('In  Offset  X: %4.4d Y: %4.4d',[Current.Offset.x, Current.Offset.y]));
   if Current.Offset.x < 0 then
      Current.Offset.x := 0;
 
@@ -349,14 +373,18 @@ begin
   if (Current.Offset.y + imgView.Height) > Current.VirtualSize.Height then
     Current.Offset.y := Current.VirtualSize.Height - imgView.Height;
 
-  PaintImage(imgView.Picture, TSize.Create(imgView.Width, imgView.Height));
-  imgView.Invalidate;
+  writeln (format('Out Offset  X: %4.4d Y: %4.4d',[Current.Offset.x, Current.Offset.y]));
+  writeln (format('   Virtual  X: %4.4d Y: %4.4d',[Current.VirtualSize.Width, Current.VirtualSize.Height]));
+  writeln (format('     Image  X: %4.4d Y: %4.4d',[imgView.Width, imgView.Height]));
+  PaintImage(TSize.Create(imgView.Width, imgView.Height));
+
 end;
 
 procedure TfrmMain.TrackingTimerTimer(Sender: TObject);
 var
   Delay: Cardinal;
 begin
+  exit;
   Delay := GetTickCount - FPrevTick;
   if FDragging then
   begin
@@ -381,19 +409,11 @@ begin
   FPrevTick := GetTickCount;
 end;
 
-Procedure TfrmMain.PaintImage(Dest: TPicture; BitmapSize: TSize);
-var
-  bm:TBitmap;
+Procedure TfrmMain.PaintImage(BitmapSize: TSize);
 begin
-  bm:= TBitmap.Create;
- // bm.BeginUpdate();
-  try
-    LoadMagickBitmapWand4(Current.ModWand, bm, BitmapSize, Current.Offset);
-    Dest.Assign(bm);
-  finally
-   // bm.EndUpdate();
-    bm.free;
-  end;
+  Current.IntBitmap.SetSize(BitmapSize.Width,BitmapSize.Height);
+  LoadMagickBitmapWand4(Current.ModWand, Current.IntBitmap, BitmapSize, Current.Offset);
+  imgViewPaint(self);
 end;
 
 procedure TfrmMain.RenderImage(const VirtualSize: TSize);
@@ -442,11 +462,11 @@ begin
     else
       NewSize:= TSize.Create(W, H);
   end;
-  writeln('Virtual ', VirtualSize.Width, ' ', VirtualSize.Height);
-  writeln('imgview ', imgview.Width, ' ', imgview.Height);
-  writeln('NewSize ', NewSize.Width, ' ', NewSize.Height);
+  //writeln('Virtual ', VirtualSize.Width, ' ', VirtualSize.Height);
+  //writeln('imgview ', imgview.Width, ' ', imgview.Height);
+  //writeln('NewSize ', NewSize.Width, ' ', NewSize.Height);
 
-  PaintImage(imgView.Picture, NewSize);
+  PaintImage(NewSize);
   sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Current.Name), W, H, (Newsize.cx / W) * 100]);
 end;
 
@@ -466,10 +486,13 @@ begin
   if Assigned(Current.OriginalWand) then
     begin
       Current.OriginalWand := DestroyMagickWand(Current.OriginalWand);
+      Current.IntBitmap.Free;
     end;
+
 
   Current.Clear;
   Current.OriginalWand := NewMagickWand();
+  Current.IntBitmap := TBitmap.Create;
 
   status := MagickReadImage(Current.OriginalWand, PChar(Image));
   Current.Name:= Image;

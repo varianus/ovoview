@@ -133,21 +133,27 @@ object frmMain: TfrmMain
       ShowCaption = False
     end
   end
-  object imgView: TImage
+  object Panel1: TPanel
     Left = 96
     Height = 407
     Top = 38
     Width = 731
     Align = alClient
-    Center = True
-    OnMouseDown = imgViewMouseDown
-    OnMouseMove = imgViewMouseMove
-    OnMouseUp = imgViewMouseUp
-    Proportional = True
-    Stretch = True
-    StretchOutEnabled = False
-    StretchInEnabled = False
-    Transparent = True
+    BevelOuter = bvNone
+    ClientHeight = 407
+    ClientWidth = 731
+    TabOrder = 3
+    object imgView: TPaintBox
+      Left = 0
+      Height = 407
+      Top = 0
+      Width = 731
+      Align = alClient
+      OnMouseDown = imgViewMouseDown
+      OnMouseMove = imgViewMouseMove
+      OnMouseUp = imgViewMouseUp
+      OnPaint = imgViewPaint
+    end
   end
   object ActionList: TActionList
     Images = ImageList1
