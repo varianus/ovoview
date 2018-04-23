@@ -27,13 +27,15 @@ interface
 
 uses
   Classes, SysUtils, types, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, Thumbnails, Magick_LCL, uInfo, uAbout, MagickWand, LCLIntf,
+  ExtCtrls, Thumbnails, Magick_LCL, uInfo, uAbout, MagickWand, LCLIntf, lclproc,
   ImageMagick, StdCtrls, Grids, ActnList, Buttons, Menus, StdActns;
 
 type
 
   { TfrmMain }
   TViewMode = (vmAdapt, vmZoom, vmReal);
+
+  { RImage }
 
   RImage = record
     OriginalWand: PMagickWand;
@@ -87,11 +89,13 @@ type
     ToolButton6: TSpeedButton;
     ToolButton7: TSpeedButton;
     procedure actAboutExecute(Sender: TObject);
+    procedure ActionListUpdate(AAction: TBasicAction; var Handled: Boolean);
     procedure actLeftExecute(Sender: TObject);
     procedure actNextExecute(Sender: TObject);
     procedure actPrevExecute(Sender: TObject);
     procedure actRightExecute(Sender: TObject);
     procedure actShowInfoExecute(Sender: TObject);
+    procedure CheckforImage(Sender: TObject);
     procedure actZoomInExecute(Sender: TObject);
     procedure actZoomOutExecute(Sender: TObject);
     procedure actZoomResetExecute(Sender: TObject);
@@ -118,6 +122,7 @@ type
     FSpeedX: Single;
     FSpeedY: Single;
     FStartPos: TPoint;
+    procedure Debug(Message: string);
     function GetImagePos: TPoint;
     procedure PaintImage(BitmapSize: TSize);
     procedure SetImagePos(Value: TPoint);
@@ -166,6 +171,16 @@ begin
 
 end;
 
+procedure TfrmMain.Debug(Message: string);
+begin
+  Debugln();
+  Debugln(Message);
+  Debugln (format('  Offset  X: %4.4d Y: %4.4d',[Current.Offset.x, Current.Offset.y]));
+  Debugln (format(' Virtual  X: %4.4d Y: %4.4d',[Current.VirtualSize.Width, Current.VirtualSize.Height]));
+  Debugln (format('   Image  X: %4.4d Y: %4.4d',[imgView.Width, imgView.Height]));
+
+end;
+
 procedure TfrmMain.FormCreate(Sender: TObject);
 
 begin
@@ -208,6 +223,12 @@ begin
   theForm.ShowModal;
 end;
 
+procedure TfrmMain.ActionListUpdate(AAction: TBasicAction; var Handled: Boolean
+  );
+begin
+
+end;
+
 procedure TfrmMain.actPrevExecute(Sender: TObject);
 begin
   if lvThumbnail.Row = 0 then
@@ -239,6 +260,13 @@ begin
   finally
     Properties.Free;
   end;
+end;
+
+procedure TfrmMain.CheckforImage(Sender: TObject);
+begin
+  if Sender is TAction then
+    TAction(Sender).Enabled:= Manager.Count > 0;
+
 end;
 
 procedure TfrmMain.SetSize(Const X,Y:integer);
@@ -368,7 +396,6 @@ end;
 procedure TfrmMain.SetImagePos(Value: TPoint);
 begin
   Current.Offset := Value;
-  writeln (format('In  Offset  X: %4.4d Y: %4.4d',[Current.Offset.x, Current.Offset.y]));
   if Current.Offset.x < 0 then
      Current.Offset.x := 0;
 
@@ -381,9 +408,6 @@ begin
   if (Current.Offset.y + imgView.Height) > Current.VirtualSize.Height then
     Current.Offset.y := Current.VirtualSize.Height - imgView.Height;
 
-  writeln (format('Out Offset  X: %4.4d Y: %4.4d',[Current.Offset.x, Current.Offset.y]));
-  writeln (format('   Virtual  X: %4.4d Y: %4.4d',[Current.VirtualSize.Width, Current.VirtualSize.Height]));
-  writeln (format('     Image  X: %4.4d Y: %4.4d',[imgView.Width, imgView.Height]));
   PaintImage(TSize.Create(imgView.Width, imgView.Height));
 
 end;
@@ -392,7 +416,7 @@ procedure TfrmMain.TrackingTimerTimer(Sender: TObject);
 var
   Delay: Cardinal;
 begin
-  exit;
+
   Delay := GetTickCount - FPrevTick;
   if FDragging then
   begin
@@ -404,7 +428,7 @@ begin
   else
   begin
     if (Abs(FSpeedX) < 0.005) and (Abs(FSpeedY) < 0.005) then
-   //   TrackingTimer.Enabled := False
+      TrackingTimer.Enabled := False
     else
     begin
       ImagePos := Point(FPrevImagePos.X + Round(Delay * FSpeedX),
@@ -470,9 +494,6 @@ begin
     else
       NewSize:= TSize.Create(W, H);
   end;
-  //writeln('Virtual ', VirtualSize.Width, ' ', VirtualSize.Height);
-  //writeln('imgview ', imgview.Width, ' ', imgview.Height);
-  //writeln('NewSize ', NewSize.Width, ' ', NewSize.Height);
 
   PaintImage(NewSize);
   sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Current.Name), W, H, (Newsize.cx / W) * 100]);

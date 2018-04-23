@@ -1,11 +1,11 @@
 object frmMain: TfrmMain
   Left = 350
-  Height = 468
+  Height = 495
   Top = 250
-  Width = 827
+  Width = 880
   Caption = 'frmMain'
-  ClientHeight = 468
-  ClientWidth = 827
+  ClientHeight = 495
+  ClientWidth = 880
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -13,13 +13,13 @@ object frmMain: TfrmMain
   object sbBottom: TStatusBar
     Left = 0
     Height = 23
-    Top = 445
-    Width = 827
+    Top = 472
+    Width = 880
     Panels = <>
   end
   object lvThumbnail: TDrawGrid
     Left = 0
-    Height = 407
+    Height = 434
     Top = 38
     Width = 96
     Align = alLeft
@@ -40,14 +40,14 @@ object frmMain: TfrmMain
     Left = 0
     Height = 38
     Top = 0
-    Width = 827
+    Width = 880
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 38
-    ClientWidth = 827
+    ClientWidth = 880
     TabOrder = 2
     object ToolButton1: TSpeedButton
-      Left = 707
+      Left = 760
       Height = 38
       Top = 0
       Width = 40
@@ -91,7 +91,7 @@ object frmMain: TfrmMain
       end
     end
     object ToolButton3: TSpeedButton
-      Left = 747
+      Left = 800
       Height = 38
       Top = 0
       Width = 40
@@ -102,7 +102,7 @@ object frmMain: TfrmMain
       ShowCaption = False
     end
     object ToolButton5: TSpeedButton
-      Left = 787
+      Left = 840
       Height = 38
       Top = 0
       Width = 40
@@ -135,19 +135,19 @@ object frmMain: TfrmMain
   end
   object Panel1: TPanel
     Left = 96
-    Height = 407
+    Height = 434
     Top = 38
-    Width = 731
+    Width = 784
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 407
-    ClientWidth = 731
+    ClientHeight = 434
+    ClientWidth = 784
     TabOrder = 3
     object imgView: TPaintBox
       Left = 0
-      Height = 407
+      Height = 434
       Top = 0
-      Width = 731
+      Width = 784
       Align = alClient
       OnMouseDown = imgViewMouseDown
       OnMouseMove = imgViewMouseMove
@@ -157,12 +157,14 @@ object frmMain: TfrmMain
   end
   object ActionList: TActionList
     Images = ImageList1
+    OnUpdate = ActionListUpdate
     left = 419
     top = 105
     object actSlideShow: TAction
       Category = 'Image'
       Caption = 'Slideshow'
       ImageIndex = 0
+      OnUpdate = CheckforImage
     end
     object actNext: TAction
       Category = 'Image'
@@ -181,18 +183,21 @@ object frmMain: TfrmMain
       Caption = 'Rotate Left'
       ImageIndex = 4
       OnExecute = actLeftExecute
+      OnUpdate = CheckforImage
     end
     object actShowInfo: TAction
       Category = 'Image'
       Caption = 'Info'
       ImageIndex = 3
       OnExecute = actShowInfoExecute
+      OnUpdate = CheckforImage
     end
     object actRight: TAction
       Category = 'Image'
       Caption = 'actRight'
       ImageIndex = 5
       OnExecute = actRightExecute
+      OnUpdate = CheckforImage
     end
     object FileOpen1: TFileOpen
       Category = 'File'
@@ -209,23 +214,27 @@ object frmMain: TfrmMain
     object actAbout: TAction
       Caption = 'About'
       OnExecute = actAboutExecute
+      OnUpdate = CheckforImage
     end
     object actZoomIn: TAction
       Category = 'Image'
       Caption = 'Zoom In'
       ImageIndex = 6
       OnExecute = actZoomInExecute
+      OnUpdate = CheckforImage
     end
     object actZoomOut: TAction
       Category = 'Image'
       Caption = 'Zoom Out'
       ImageIndex = 7
       OnExecute = actZoomOutExecute
+      OnUpdate = CheckforImage
     end
     object actZoomReset: TAction
       Category = 'Image'
       Caption = 'Zoom Reset'
       OnExecute = actZoomResetExecute
+      OnUpdate = CheckforImage
     end
   end
   object ImageList1: TImageList
