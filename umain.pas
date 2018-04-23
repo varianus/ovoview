@@ -322,17 +322,19 @@ end;
 
 procedure TfrmMain.imgViewPaint(Sender: TObject);
 begin
- imgView.Canvas.Lock;
- imgView.Canvas.Brush.Style := bsClear;
- imgView.Canvas.FillRect(imgView.ClientRect);
-
- if Current.IntBitmap <> nil then
+  imgView.Canvas.Lock;
+  if Current.IntBitmap <> nil then
   begin
    if (imgView.Width > Current.IntBitmap.Width) or
       (imgView.Height > Current.IntBitmap.Height)  then
-     imgView.Canvas.Draw((imgView.Width - Current.IntBitmap.Width) div 2,
-                     (imgView.Height - Current.IntBitmap.Height) div 2,
-                     Current.IntBitmap)
+     begin
+       imgView.Canvas.Brush.Style := bsSolid;
+       imgView.Canvas.FillRect(imgView.ClientRect);
+       imgView.Canvas.Draw((imgView.Width - Current.IntBitmap.Width) div 2,
+                         (imgView.Height - Current.IntBitmap.Height) div 2,
+                          Current.IntBitmap)
+
+     end
    else
      imgView.Canvas.Draw(0,0,Current.IntBitmap)
 
