@@ -291,19 +291,25 @@ end;
 procedure TfrmMain.imgViewMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-   FDragging := True;
-   FPrevTick := GetTickCount;
-   FPrevImagePos := ImagePos;
-   TrackingTimer.Enabled := True;
-   FStartPos := Point(X - ImgView.Left + Current.offset.X, Y - ImgView.Top + Current.offset.Y);
-   Screen.Cursor := crHandPoint;
+
+  Debug('MouseDown');
+  if (Current.VirtualSize.Width <= imgView.Width) or
+     (Current.VirtualSize.Height <= imgView.Height) then
+    exit;
+
+  FDragging := True;
+  FPrevTick := GetTickCount;
+  FPrevImagePos := ImagePos;
+  TrackingTimer.Enabled := True;
+  FStartPos := Point(X - ImgView.Left + Current.offset.X, Y - ImgView.Top + Current.offset.Y);
+  Screen.Cursor := crHandPoint;
 end;
 
 procedure TfrmMain.imgViewMouseMove(Sender: TObject; Shift: TShiftState; X,
   Y: Integer);
 begin
-  if FDragging then
-   ImagePos := Point(FStartPos.X - X , FStartPos.Y - Y );
+ if FDragging then
+  ImagePos := Point(FStartPos.X - X , FStartPos.Y - Y );
 
 end;
 
