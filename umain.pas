@@ -79,6 +79,7 @@ type
     Panel1: TPanel;
     pnlCenter: TPanel;
     sbBottom: TStatusBar;
+    ToolButton8: TSpeedButton;
     TrackingTimer: TTimer;
     tlbTopBar: TPanel;
     ToolButton1: TSpeedButton;
@@ -117,6 +118,7 @@ type
     procedure TrackingTimerTimer(Sender: TObject);
   private
     FDragging: Boolean;
+    FLoading: boolean;
     FPrevImagePos: TPoint;
     FPrevTick: Cardinal;
     FSpeedX: Single;
@@ -153,7 +155,7 @@ uses math;
 
 Const
   THUMBNAIL_SIZE = 64;
-  ZoomRatio = 1.5;
+  ZoomRatio = 1.4;
 
 { RImage }
 
@@ -189,6 +191,9 @@ begin
 
   Manager := TThumbnailManager.Create;
   Manager.OnLoadThumbnail:=@UpdateLoadProgress;
+
+  FLoading:= False;
+  FDragging:= False;
 
   Manager.MaxSize := TSize.Create(THUMBNAIL_SIZE,THUMBNAIL_SIZE);
   lvThumbnail.Width:= THUMBNAIL_SIZE + 2 + GetSystemMetrics(2{SM_CXVSCROLL}) ;
@@ -290,7 +295,8 @@ end;
 procedure TfrmMain.actZoomResetExecute(Sender: TObject);
 begin
   Current.ViewMode:=vmAdapt;
-  SetSize(Current.RealSize.Width, Current.RealSize.Width);
+  Current.Offset := TPoint.Zero;
+  SetSize(imgView.Width, imgView.Height);
 end;
 
 procedure TfrmMain.FileOpen1Accept(Sender: TObject);
@@ -313,6 +319,7 @@ begin
  //
  pnlCenter.Left:= (tlbTopBar.Width - pnlCenter.Width) div 2;
  if Manager.Count = 0 then exit;
+
  RenderImage(Current.VirtualSize);
 end;
 
@@ -383,6 +390,8 @@ end;
 procedure TfrmMain.lvThumbnailSelectCell(Sender: TObject; aCol, aRow: Integer;
   var CanSelect: Boolean);
 begin
+  if FLoading then exit;
+
   if Manager.Count = 0 then exit;
 
   LoadImage(Manager[aRow].FullName);
@@ -473,9 +482,9 @@ begin
   case Current.ViewMode of
     vmAdapt:
       begin
-      if (H > VirtualSize.Height) or (W > VirtualSize.Width) then
+      if (H > imgView.Height) or (W > imgView.Width) then
         begin
-          NewSize:=Manager.GetPreviewScaleSize(W, H, VirtualSize);
+          NewSize:=Manager.GetPreviewScaleSize(W, H, TSize.Create(imgView.Width, imgView.Height));
           MagickResizeImage(Current.ModWand, NewSize.Width, NewSize.Height, LanczosFilter, 1.0);
         end
       else
@@ -491,12 +500,17 @@ begin
          else
            NewSize:= TSize.Create(VirtualSize.Width, VirtualSize.Height)
       end;
+    vmReal:
+      begin
+        NewSize:= Current.RealSize;
+      end;
+
     else
       NewSize:= TSize.Create(W, H);
   end;
 
   PaintImage(NewSize);
-  sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Current.Name), W, H, (Newsize.cx / W) * 100]);
+  sbBottom.SimpleText:=format('%s   %dx%d   %.2f%%',[ExtractFileName(Current.Name), W, H, (Newsize.Width / W) * 100]);
 end;
 
 procedure TfrmMain.UpdateLoadProgress(Sender: TThumbnailManager; const Total,
@@ -552,14 +566,15 @@ function TfrmMain.LoadPath(Path: TFileName): integer;
 var
   i: integer;
 begin
+  FLoading:=true;
   lvThumbnail.Clear;
-
   Manager.LoadPath(ExtractFilePath(Path));
   lvThumbnail.RowCount:= Manager.Count;
 
   for I := 0 to Manager.Count -1 do
     lvThumbnail.RowHeights[i]:= Manager[I].Size.Height + 6;
   result := Manager.Count;
+  FLoading:=false;
 end;
 {
 

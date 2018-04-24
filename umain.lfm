@@ -132,6 +132,15 @@ object frmMain: TfrmMain
       Flat = True
       ShowCaption = False
     end
+    object ToolButton8: TSpeedButton
+      Left = 80
+      Height = 38
+      Top = 0
+      Width = 40
+      Action = actZoomReset
+      Align = alLeft
+      Flat = True
+    end
   end
   object Panel1: TPanel
     Left = 96
@@ -159,7 +168,7 @@ object frmMain: TfrmMain
     Images = ImageList1
     OnUpdate = ActionListUpdate
     left = 419
-    top = 105
+    top = 104
     object actSlideShow: TAction
       Category = 'Image'
       Caption = 'Slideshow'
